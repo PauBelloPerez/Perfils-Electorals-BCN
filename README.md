@@ -21,7 +21,7 @@ El servidor incluido escucha solo en `127.0.0.1` y sirve únicamente los archivo
 
 ## Uso
 
-El menú agrupa los indicadores por temas. Busca por etiqueta, descripción o código. Filtra por encuesta, año y perfiles, y cambia el desglose por sexo. El gráfico compara una respuesta; la tabla muestra todas las respuestas y sus recuentos. La exportación CSV incluye los filtros, las bases y el criterio de cálculo.
+El menú agrupa los indicadores por temas. Busca por etiqueta, descripción o código. Filtra por encuesta y perfiles, y cambia el desglose por sexo. Todos los años se analizan conjuntamente, sin filtro temporal. El gráfico compara una respuesta; la tabla muestra todas las respuestas y sus recuentos. La exportación CSV incluye los filtros, las bases y el criterio de cálculo, e indica «Tots» en la columna de año.
 
 La tabla presenta los perfiles en columnas por defecto, con un único encabezado por perfil y subcolumnas Home/Dona. En **Personalitza la taula** se puede cambiar a perfiles en filas, agrupar o repetir el título de cada perfil, activar el color por intensidad, mostrar recuentos y mostrar la referencia del conjunto seleccionado. El color usa una escala común de 0 a 100%, sin normalizar por fila. Las bases permanecen visibles. Estas preferencias se guardan en el navegador cuando permite almacenamiento local y se conservan al restablecer filtros; no cambian los cálculos ni el CSV exportado.
 

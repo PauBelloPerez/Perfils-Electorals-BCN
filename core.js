@@ -28,7 +28,7 @@
   }
   function summarize(data,state){
     const idx=Object.fromEntries(data.headers.map((v,i)=>[v,i]));
-    const selected=data.rows.filter(r=>(!state.year||r[idx.ANY]===state.year)&&(!state.study||r[idx.estudi]===state.study)&&(!state.profiles||state.profiles.includes(profile(r[idx.ID2]))));
+    const selected=data.rows.filter(r=>(!state.study||r[idx.estudi]===state.study)&&(!state.profiles||state.profiles.includes(profile(r[idx.ID2]))));
     const valid=r=>!missing(r[idx[state.indicator]])&&(!state.excludeNS||!nonresponse(r[idx[state.indicator]]));
     const available=selected.filter(valid);
     const responses=[...new Set(available.map(r=>r[idx[state.indicator]]))].sort((a,b)=>String(a).localeCompare(String(b),'ca',{numeric:true}));
