@@ -1,6 +1,6 @@
 # Perfils electorals
 
-Web para explorar encuestas por `ID2`, con desglose inicial `SEXE` (Home y Dona). Interfaz en catalán, sin dependencias externas. La fuente automática es **`data.csv`**, en la raíz del proyecto, junto a `index.html`.
+Web para explorar encuestas por perfiles sociodemográficos o variables políticas, con desglose inicial `SEXE` (Home y Dona). Interfaz en catalán, sin dependencias externas. La fuente automática es **`data.csv`**, en la raíz del proyecto, junto a `index.html`.
 
 ## Abrir
 
@@ -21,11 +21,17 @@ El servidor incluido escucha solo en `127.0.0.1` y sirve únicamente los archivo
 
 ## Uso
 
-El menú agrupa los indicadores por temas. Busca por etiqueta, descripción o código. Filtra por encuesta y perfiles, y cambia el desglose por sexo. Todos los años se analizan conjuntamente, sin filtro temporal. El gráfico compara una respuesta; la tabla muestra todas las respuestas y sus recuentos. La exportación CSV incluye los filtros, las bases y el criterio de cálculo, e indica «Tots» en la columna de año.
+El desplegable **Analitza per** elige la variable de referencia de gráficos, tablas y exportaciones: perfiles sociodemográficos (`ID2`, por defecto), ideología agrupada (`IDEO_3`), recuerdo de voto municipal (`MUNI_VOT`), intención de voto municipal (`INT_VOT`) o posicionamiento respecto al PSC (`PERFIL_POLITIC`). Las opciones ausentes del archivo aparecen desactivadas. También se pueden consultar las variables políticas como indicadores en el menú temático.
+
+Al cambiar la referencia se seleccionan todas sus categorías y se conservan el indicador y el desglose por sexo. Los porcentajes se calculan dentro de cada categoría y sexo; el conjunto «Menció problema» conserva además la base propia de cada indicador. La exportación identifica la variable de referencia y su descripción. `Restableix` vuelve a `ID2`.
+
+Los datos ausentes de la referencia política (`NA`, vacíos, `No disponible`, etc.) se agrupan como **Sense dada de referència** y se pueden desmarcar en el selector de categorías. En `ID2` se mantiene **Sense perfil**. «No posicionats», «Indecís» y las categorías de abstención son respuestas propias y se conservan, sin confundirlas con valores ausentes. La opción de excluir NS/NC afecta al indicador, no a las categorías de referencia.
+
+El menú agrupa los indicadores por temas. Busca por etiqueta, descripción o código. Selecciona las categorías de referencia y el desglose por sexo. Todas las encuestas y todos los años se analizan conjuntamente, sin filtros por origen ni periodo. El gráfico compara una respuesta; la tabla muestra todas las respuestas y sus recuentos. La exportación CSV incluye los filtros, las bases y el criterio de cálculo, e indica «Totes» en encuesta y «Tots» en año. El apartado de origen conserva la cobertura de cada encuesta como información descriptiva.
 
 La tabla presenta los perfiles en columnas por defecto, con un único encabezado por perfil y subcolumnas Home/Dona. En **Personalitza la taula** se puede cambiar a perfiles en filas, agrupar o repetir el título de cada perfil, activar el color por intensidad, mostrar recuentos y mostrar la referencia del conjunto seleccionado. El color usa una escala común de 0 a 100%, sin normalizar por fila. Las bases permanecen visibles. Estas preferencias se guardan en el navegador cuando permite almacenamiento local y se conservan al restablecer filtros; no cambian los cálculos ni el CSV exportado.
 
-En **Preocupacions ciutadanes → Menció problema · tots els problemes**, una tabla reúne todas las columnas `MENCIO_TEMES_` presentes en el CSV. El selector **Resposta a comparar** alterna Sí (1) y No (0). Cada problema conserva su propia base de respuesta por perfil y sexo, visible en cada celda, incluso si se ocultan los recuentos. Las cifras superiores muestran el mínimo y máximo de bases entre indicadores, no una suma de respuestas. Los porcentajes entre problemas no tienen que sumar 100%. Se mantienen filtros y opciones de tabla; esta vista conjunta se ofrece en tabla. Su exportación incluye el conjunto, cada indicador y solo la respuesta elegida.
+En **Preocupacions ciutadanes → Menció problema · tots els problemes**, una tabla reúne todas las columnas `MENCIO_TEMES_` presentes en el CSV. El selector **Resposta que es mostra** alterna Sí (1) y No (0). Cada problema conserva su propia base de respuesta por perfil y sexo, visible en cada celda, incluso si se ocultan los recuentos. Las cifras superiores muestran el mínimo y máximo de bases entre indicadores, no una suma de respuestas. Los porcentajes entre problemas no tienen que sumar 100%. Se mantienen filtros y opciones de tabla; esta vista conjunta se ofrece en tabla. Su exportación incluye el conjunto, cada indicador y solo la respuesta elegida.
 
 `Carrega un CSV` sustituye temporalmente los datos en el navegador. Admite UTF-8, separadores punto y coma, coma o tabulación, campos entrecomillados y saltos dentro de campos. Requiere `ID2`, `SEXE`, `estudi`, `ANY` y al menos un indicador conocido. Al recargar, vuelve a leer `data.csv` del servidor, sin caché. Si el archivo falta o es inválido, muestra un aviso; no sustituye silenciosamente los datos por una muestra. Desde `file://`, vuelve a solicitar una selección manual.
 

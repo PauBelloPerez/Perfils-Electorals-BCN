@@ -12,23 +12,24 @@
 <main>
   <header class="topbar"><div>BARCELONA <span>/</span> Explorador de perfils</div><div class="top-actions"><label class="button secondary upload">Carrega un CSV<input id="upload" type="file" accept=".csv,.tsv,text/csv" hidden></label><button id="reset" class="icon-button" title="Restableix la vista" disabled>Restableix</button></div></header>
   <div class="page">
-    <div class="intro"><div><div class="eyebrow">LECTURA COMPARADA</div><h1>Perfils sociodemogràfics</h1><p>Explora les respostes de cada perfil i les diferències entre homes i dones.</p></div><span id="source-badge" class="badge">Sense dades carregades</span></div>
+    <div class="intro"><div><div class="eyebrow">LECTURA COMPARADA</div><h1 id="analysis-title">Perfils sociodemogràfics</h1><p>Explora les respostes segons la referència escollida i el desglossament per sexe.</p></div><span id="source-badge" class="badge">Sense dades carregades</span></div>
     <section class="filters" aria-label="Filtres d’anàlisi" hidden>
-      <label>Enquesta<select id="study"></select></label>
+      <label>Analitza per<select id="group-by"></select></label>
       <label>Desglossament<select id="sex"><option value="compare">Home i Dona</option><option value="all">Total, sense desglossar</option><option value="Home">Només Home</option><option value="Dona">Només Dona</option></select></label>
-      <div class="profile-filter"><span>Perfils</span><details id="profile-details"><summary id="profile-summary">Tots els perfils</summary><div id="profile-options"></div></details></div>
+      <div class="profile-filter"><span>Categories de referència</span><details id="profile-details"><summary id="profile-summary">Totes les categories</summary><div id="profile-options"></div></details></div>
     </section>
+    <p id="grouping-note" class="grouping-note" hidden></p>
     <div id="message" class="message" role="status" hidden></div>
     <section class="workspace" aria-labelledby="indicator-title" hidden>
       <div class="panel-heading"><div><div id="breadcrumb" class="eyebrow"></div><h2 id="indicator-title"></h2><p id="description"></p></div><button id="export" class="button secondary">↓ Exporta taula</button></div>
       <div id="variable-warning" class="notice" hidden></div>
-      <div class="metrics"><div><span>Registres seleccionats</span><strong id="selected-n"></strong></div><div><span>Respostes amb dada</span><strong id="valid-n"></strong></div><div><span>Sense dada / excloses</span><strong id="missing-n"></strong></div><div class="method"><span>Càlcul</span><strong>Sense ponderar</strong><small>Base pròpia per perfil i sexe</small></div></div>
-      <div class="chart-toolbar"><div class="tabs" role="group" aria-label="Tipus de visualització"><button id="chart-tab" aria-pressed="true">Gràfic</button><button id="table-tab" aria-pressed="false">Taula</button></div><label id="response-control">Resposta a comparar<select id="response"></select></label><label class="check"><input id="exclude-ns" type="checkbox"> Exclou NS/NC explícits</label></div>
-      <div id="chart-view"><div class="chart-heading"><div><h3 id="response-title"></h3><p>Percentatge dins de cada perfil i sexe</p></div><div id="legend" class="legend"></div></div><div id="reference"></div><div id="chart" class="chart"></div><div class="axis"><span>0%</span><span>25%</span><span>50%</span><span>75%</span><span>100%</span></div></div>
+      <div class="metrics"><div><span>Registres seleccionats</span><strong id="selected-n"></strong></div><div><span>Respostes amb dada</span><strong id="valid-n"></strong></div><div><span>Sense dada / excloses</span><strong id="missing-n"></strong></div><div class="method"><span>Càlcul</span><strong>Sense ponderar</strong><small>Base pròpia per grup i sexe</small></div></div>
+      <div class="chart-toolbar"><div class="tabs" role="group" aria-label="Tipus de visualització"><button id="chart-tab" aria-pressed="true">Gràfic</button><button id="table-tab" aria-pressed="false">Taula</button></div><label id="response-control">Resposta que es mostra<select id="response"></select></label><label class="check"><input id="exclude-ns" type="checkbox"> Exclou NS/NC de l’indicador</label></div>
+      <div id="chart-view"><div class="chart-heading"><div><h3 id="response-title"></h3><p>Percentatge dins de cada grup i sexe</p></div><div id="legend" class="legend"></div></div><div id="reference"></div><div id="chart" class="chart"></div><div class="axis"><span>0%</span><span>25%</span><span>50%</span><span>75%</span><span>100%</span></div></div>
       <div id="table-view" hidden>
         <details class="table-settings" open><summary>Personalitza la taula</summary><div class="table-settings-controls">
-          <label class="orientation-control">Disposició<select id="table-orientation"><option value="columns">Perfils en columnes</option><option value="rows">Perfils en files</option></select></label>
-          <label class="check"><input id="table-grouped" type="checkbox" checked> Un únic títol per perfil</label>
+          <label class="orientation-control">Disposició<select id="table-orientation"><option value="columns">Grups en columnes</option><option value="rows">Grups en files</option></select></label>
+          <label class="check"><input id="table-grouped" type="checkbox" checked> Un únic títol per grup</label>
           <label class="check"><input id="table-heat" type="checkbox" checked> Color per intensitat</label>
           <label class="check"><input id="table-counts" type="checkbox" checked> Mostra recomptes</label>
           <label class="check"><input id="table-reference" type="checkbox" checked> Mostra el conjunt seleccionat</label>
@@ -37,7 +38,7 @@
       </div>
       <div class="chart-footer"><span><i class="low-dot"></i> n &lt; 30: base reduïda, lectura orientativa.</span><span>— Sense base de resposta</span></div>
     </section>
-    <details class="technical" hidden><summary>Origen de les dades i criteris de càlcul <span>+</span></summary><div class="technical-body"><p id="source-text"></p><p>Els percentatges es calculen sobre les respostes amb dada de cada perfil i sexe. Els buits, NA, NaN, null i «No disponible» s’exclouen. Els NS/NC explícits es mantenen llevat que activis l’opció d’exclusió. «Sense perfil» conserva els registres sense ID2.</p><p>Les enquestes poden tenir universos i preguntes diferents. La vista conjunta és descriptiva del conjunt de registres; no és una estimació representativa de Barcelona. Un buit no permet distingir una pregunta no formulada d’una no-resposta. No es pressuposa que els registres siguin persones úniques.</p><div id="coverage"></div><p class="small">Els grups temàtics són una primera proposta editable. Les variables sense descripció i les definicions dubtoses s’identifiquen en seleccionar-les.</p></div></details>
+    <details class="technical" hidden><summary>Origen de les dades i criteris de càlcul <span>+</span></summary><div class="technical-body"><p id="source-text"></p><p>Els percentatges es calculen sobre les respostes amb dada de cada grup i sexe. Els buits, NA, NaN, null i «No disponible» s’exclouen. Els NS/NC explícits es mantenen llevat que activis l’opció d’exclusió. «Sense perfil» conserva els registres sense ID2. Amb una referència política, els valors absents s’agrupen a «Sense dada de referència». «No posicionats», «Indecís» i les categories d’abstenció es mantenen com a categories pròpies.</p><p>Les enquestes poden tenir universos i preguntes diferents. La vista conjunta és descriptiva del conjunt de registres; no és una estimació representativa de Barcelona. Un buit no permet distingir una pregunta no formulada d’una no-resposta. No es pressuposa que els registres siguin persones úniques.</p><div id="coverage"></div><p class="small">Els grups temàtics són una primera proposta editable. Les variables sense descripció i les definicions dubtoses s’identifiquen en seleccionar-les.</p></div></details>
     <footer>PERFILS <span>Exploració descriptiva d’enquestes · v0.1</span></footer>
   </div>
 </main>

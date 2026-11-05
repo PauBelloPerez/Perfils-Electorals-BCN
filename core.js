@@ -3,7 +3,23 @@
   const normalize = v => String(v??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
   const missing = v => v==null || ['', 'na','nan','null','no disponible'].includes(normalize(v));
   const nonresponse = v => /^(ns\s*\/?\s*nc|ns|nc|no ho sap|no sap|no contesta|no respon|no sap.*contesta)$/.test(normalize(v));
-  const profile = v => missing(v)?'Sense perfil':String(v);
+  const GROUPINGS=[
+    {id:'ID2',label:'Perfils sociodemogràfics'},
+    {id:'IDEO_3',label:'Ideologia agrupada',order:['Esquerra','Dreta','No posicionats']},
+    {id:'MUNI_VOT',label:'Record de vot municipal'},
+    {id:'INT_VOT',label:'Intenció de vot municipal'},
+    {id:'PERFIL_POLITIC',label:'Posicionament respecte al PSC',order:['Convençuts, simpatitzants o exvotants del partit',"Satisfets d'esquerres",'Satisfets poc polititzats','No simpatitzants','Satisfets de dretes']}
+  ];
+  const missingGroupLabel = groupBy => groupBy==='ID2'?'Sense perfil':'Sense dada de referència';
+  const profile = (v,groupBy='ID2') => missing(v)?missingGroupLabel(groupBy):String(v);
+  function compareProfiles(a,b,groupBy='ID2'){
+    if(a===b)return 0;
+    const absent=missingGroupLabel(groupBy);
+    if(a===absent)return 1;if(b===absent)return -1;
+    const order=GROUPINGS.find(g=>g.id===groupBy)?.order||[];
+    const rank=v=>order.includes(v)?order.indexOf(v):order.length;
+    return rank(a)-rank(b)||a.localeCompare(b,'ca');
+  }
   function parseCSV(text){
     text=text.replace(/^\uFEFF/,'');
     const first=text.split(/\r?\n/,1)[0];
@@ -28,11 +44,16 @@
   }
   function summarize(data,state){
     const idx=Object.fromEntries(data.headers.map((v,i)=>[v,i]));
-    const selected=data.rows.filter(r=>(!state.study||r[idx.estudi]===state.study)&&(!state.profiles||state.profiles.includes(profile(r[idx.ID2]))));
+    const groupBy=state.groupBy||'ID2',grouping=GROUPINGS.find(g=>g.id===groupBy);
+    if(!grouping||idx[groupBy]===undefined)throw Error('Variable de referència no disponible: '+groupBy);
+    const groupName=r=>profile(r[idx[groupBy]],groupBy);
+    const selected=data.rows.filter(r=>!state.profiles||state.profiles.includes(groupName(r)));
     const valid=r=>!missing(r[idx[state.indicator]])&&(!state.excludeNS||!nonresponse(r[idx[state.indicator]]));
     const available=selected.filter(valid);
     const responses=[...new Set(available.map(r=>r[idx[state.indicator]]))].sort((a,b)=>String(a).localeCompare(String(b),'ca',{numeric:true}));
-    const profiles=[...new Set(selected.map(r=>profile(r[idx.ID2])))].sort((a,b)=>a==='Sense perfil'?1:b==='Sense perfil'?-1:a.localeCompare(b,'ca'));
+    const buckets=new Map();
+    for(const row of selected){const name=groupName(row);if(!buckets.has(name))buckets.set(name,[]);buckets.get(name).push(row);}
+    const profiles=[...buckets.keys()].sort((a,b)=>compareProfiles(a,b,groupBy));
     const sexes=state.sex==='compare'?['Home','Dona']:state.sex==='all'?['Total']:[state.sex];
     const make=(name,sex,source)=>{
       const totalRows=source.filter(r=>sex==='Total'||r[idx.SEXE]===sex);
@@ -40,10 +61,11 @@
       usable.forEach(r=>counts[r[idx[state.indicator]]]++);
       return {profile:name,sex,total:totalRows.length,n:usable.length,missing:totalRows.length-usable.length,counts};
     };
-    const groups=profiles.flatMap(p=>sexes.map(s=>make(p,s,selected.filter(r=>profile(r[idx.ID2])===p))));
+    const groups=profiles.flatMap(p=>sexes.map(s=>make(p,s,buckets.get(p))));
     const reference=make('Conjunt seleccionat',state.sex==='Home'||state.sex==='Dona'?state.sex:'Total',selected);
     const coverage={};for(const r of selected){const name=r[idx.estudi]??'Sense enquesta';coverage[name]??={total:0,n:0};coverage[name].total++;if(valid(r))coverage[name].n++;}
-    return {groups,reference,responses,coverage,selected:reference.total,valid:reference.n,missing:reference.missing};
+    const groupingMissing=selected.filter(r=>missing(r[idx[groupBy]])&&(reference.sex==='Total'||r[idx.SEXE]===reference.sex)).length;
+    return {groups,reference,responses,coverage,selected:reference.total,valid:reference.n,missing:reference.missing,groupBy,groupLabel:grouping.label,missingGroupLabel:missingGroupLabel(groupBy),groupingMissing};
   }
   function summarizeCollection(data,state,indicators,response){
     const series=indicators.filter(id=>data.headers.includes(id)).map(id=>({id,result:summarize(data,{...state,indicator:id})}));
@@ -57,7 +79,7 @@
       }))};
     };
     const range=key=>[Math.min(...series.map(s=>s.result[key])),Math.max(...series.map(s=>s.result[key]))];
-    return {collection:true,series,response,responses:series.map(s=>s.id),
+    return {collection:true,series,response,responses:series.map(s=>s.id),groupBy:first.groupBy,groupLabel:first.groupLabel,missingGroupLabel:first.missingGroupLabel,groupingMissing:first.groupingMissing,
       groups:first.groups.map((_,i)=>combine(r=>r.groups[i])),reference:combine(r=>r.reference),
       selected:first.selected,valid:Math.max(...series.map(s=>s.result.valid)),validRange:range('valid'),missingRange:range('missing'),
       coverage:Object.fromEntries(Object.keys(first.coverage).map(name=>{
@@ -65,6 +87,6 @@
         return [name,{total:first.coverage[name].total,min:Math.min(...bases),max:Math.max(...bases)}];
       }))};
   }
-  const api={normalize,missing,profile,nonresponse,parseCSV,summarize,summarizeCollection};
+  const api={GROUPINGS,normalize,missing,profile,compareProfiles,nonresponse,parseCSV,summarize,summarizeCollection};
   if(typeof module!=='undefined')module.exports=api;else root.ProfileCore=api;
 })(typeof window!=='undefined'?window:globalThis);

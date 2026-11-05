@@ -35,16 +35,16 @@ const sandbox={window:{}};
 vm.runInNewContext(fs.readFileSync(samplePath,'utf8'),sandbox);
 const data=sandbox.window.SAMPLE_DATA,indicators=data.headers.filter(id=>id.startsWith('MENCIO_TEMES_'));
 assert.equal(indicators.length,10);
-for(const sex of ['compare','all','Home','Dona'])for(const study of ['','Actualitat','Valors socials']){
- const filtered={sex,study};
+for(const sex of ['compare','all','Home','Dona']){
+ const filtered={sex};
  const a=C.summarizeCollection(data,filtered,indicators,'1'),b=C.summarizeCollection(data,filtered,indicators,'0');
  for(const id of indicators)for(let i=0;i<a.groups.length;i++){
   const g=a.groups[i],idx=data.headers.indexOf(id);
-  const rows=data.rows.filter(r=>(!study||r[2]===study)&&C.profile(r[0])===g.profile&&(g.sex==='Total'||r[1]===g.sex)&&!C.missing(r[idx]));
+  const rows=data.rows.filter(r=>C.profile(r[0])===g.profile&&(g.sex==='Total'||r[1]===g.sex)&&!C.missing(r[idx]));
   assert.equal(g.cells[id].n,rows.length);
   assert.equal(g.cells[id].count,rows.filter(r=>r[idx]==='1').length);
   assert.equal(g.cells[id].count+b.groups[i].cells[id].count,g.cells[id].n);
  }
 }
-console.log('PASS: 10-indicator collection, independent per-cell bases, yes/no, sex/study filters, missing values and both table layouts.');
+console.log('PASS: 10-indicator collection, independent per-cell bases, yes/no, sex filters across all surveys, missing values and both table layouts.');
 }else console.log('Optional local sample collection checks skipped.');

@@ -9,7 +9,7 @@ assert.equal(r.groups.find(g=>g.profile==='A'&&g.sex==='Home').counts['Sí'],1);
 assert.equal(r.groups.find(g=>g.profile==='Sense perfil'&&g.sex==='Dona').n,1);
 assert.equal(C.summarize(fixture,{indicator:'x',sex:'compare',excludeNS:true}).valid,4);
 assert.equal(C.summarize(fixture,{indicator:'x',sex:'Dona'}).valid,2);
-assert.equal(C.summarize(fixture,{indicator:'x',sex:'all',study:'Two',excludeNS:true}).valid,1);
+assert.equal(C.summarize(fixture,{indicator:'x',sex:'all',excludeNS:true}).valid,4);
 assert.equal(C.summarize(fixture,{indicator:'x',sex:'compare',profiles:[]}).valid,0);
 const parsed=C.parseCSV('\uFEFF"ID2";"SEXE";"estudi";"ANY";"x"\r\n"a; b";Home;One;2025;"line 1\nline ""2"""\r\n');
 assert.equal(parsed.rows[0][0],'a; b');assert.equal(parsed.rows[0][4],'line 1\nline "2"');

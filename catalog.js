@@ -92,9 +92,30 @@ window.INDICATORS = [
     "warning": ""
   },
   {
+    "id": "IDEO_3",
+    "label": "Ideologia agrupada",
+    "description": "Ideologia agrupada en Esquerra, Dreta i No posicionats.",
+    "group": "Política i participació",
+    "warning": ""
+  },
+  {
+    "id": "MUNI_VOT",
+    "label": "Record de vot municipal",
+    "description": "Record de vot a les eleccions municipals.",
+    "group": "Política i participació",
+    "warning": ""
+  },
+  {
+    "id": "INT_VOT",
+    "label": "Intenció de vot municipal",
+    "description": "Intenció de vot a les eleccions municipals.",
+    "group": "Política i participació",
+    "warning": ""
+  },
+  {
     "id": "PERFIL_POLITIC",
-    "label": "Resum posiconament polític en les eleccions",
-    "description": "Resum posiconament polític en les eleccions",
+    "label": "Posicionament respecte al PSC",
+    "description": "Resum del posicionament polític respecte al PSC: convençuts, simpatitzants o exvotants del partit; satisfets d’esquerres; satisfets poc polititzats; no simpatitzants; satisfets de dretes.",
     "group": "Política i participació",
     "warning": ""
   },
