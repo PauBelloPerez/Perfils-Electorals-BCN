@@ -1,0 +1,8 @@
+data/sample.js
+data/*.csv
+data/audit.json
+scripts/inspect_sources.py
+scripts/prepare_data.py
+.DS_Store
+__pycache__/
+*.log

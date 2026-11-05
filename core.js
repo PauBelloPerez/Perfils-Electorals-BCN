@@ -1,0 +1,70 @@
+(function(root){
+  'use strict';
+  const normalize = v => String(v??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
+  const missing = v => v==null || ['', 'na','nan','null','no disponible'].includes(normalize(v));
+  const nonresponse = v => /^(ns\s*\/?\s*nc|ns|nc|no ho sap|no sap|no contesta|no respon|no sap.*contesta)$/.test(normalize(v));
+  const profile = v => missing(v)?'Sense perfil':String(v);
+  function parseCSV(text){
+    text=text.replace(/^\uFEFF/,'');
+    const first=text.split(/\r?\n/,1)[0];
+    const delimiter = [';',',','\t'].sort((a,b)=>first.split(b).length-first.split(a).length)[0];
+    const records=[];let row=[],cell='',quoted=false;
+    for(let i=0;i<text.length;i++){
+      const c=text[i];
+      if(c==='"') {if(quoted && text[i+1]==='"'){cell+='"';i++;}else quoted=!quoted;}
+      else if(c===delimiter && !quoted){row.push(cell);cell='';}
+      else if((c==='\n'||c==='\r')&&!quoted){if(c==='\r'&&text[i+1]==='\n')i++;row.push(cell);if(row.some(v=>v!==''))records.push(row);row=[];cell='';}
+      else cell+=c;
+    }
+    if(quoted)throw Error('El CSV conté cometes sense tancar.');
+    row.push(cell);if(row.some(v=>v!==''))records.push(row);
+    if(records.length<2)throw Error('El CSV no conté observacions.');
+    const headers=records.shift().map(v=>v.trim());
+    if(new Set(headers).size!==headers.length)throw Error('Hi ha noms de columna duplicats.');
+    for(const key of ['ID2','SEXE','estudi','ANY'])if(!headers.includes(key))throw Error('Falta la columna '+key+'.');
+    const bad=records.findIndex(r=>r.length!==headers.length);
+    if(bad!==-1)throw Error('Nombre de columnes incorrecte al registre '+(bad+2)+'.');
+    return {headers,rows:records.map(r=>r.map(v=>['','NA','NaN','null'].includes(v)?null:v))};
+  }
+  function summarize(data,state){
+    const idx=Object.fromEntries(data.headers.map((v,i)=>[v,i]));
+    const selected=data.rows.filter(r=>(!state.year||r[idx.ANY]===state.year)&&(!state.study||r[idx.estudi]===state.study)&&(!state.profiles||state.profiles.includes(profile(r[idx.ID2]))));
+    const valid=r=>!missing(r[idx[state.indicator]])&&(!state.excludeNS||!nonresponse(r[idx[state.indicator]]));
+    const available=selected.filter(valid);
+    const responses=[...new Set(available.map(r=>r[idx[state.indicator]]))].sort((a,b)=>String(a).localeCompare(String(b),'ca',{numeric:true}));
+    const profiles=[...new Set(selected.map(r=>profile(r[idx.ID2])))].sort((a,b)=>a==='Sense perfil'?1:b==='Sense perfil'?-1:a.localeCompare(b,'ca'));
+    const sexes=state.sex==='compare'?['Home','Dona']:state.sex==='all'?['Total']:[state.sex];
+    const make=(name,sex,source)=>{
+      const totalRows=source.filter(r=>sex==='Total'||r[idx.SEXE]===sex);
+      const usable=totalRows.filter(valid);const counts=Object.fromEntries(responses.map(v=>[v,0]));
+      usable.forEach(r=>counts[r[idx[state.indicator]]]++);
+      return {profile:name,sex,total:totalRows.length,n:usable.length,missing:totalRows.length-usable.length,counts};
+    };
+    const groups=profiles.flatMap(p=>sexes.map(s=>make(p,s,selected.filter(r=>profile(r[idx.ID2])===p))));
+    const reference=make('Conjunt seleccionat',state.sex==='Home'||state.sex==='Dona'?state.sex:'Total',selected);
+    const coverage={};for(const r of selected){const name=r[idx.estudi]??'Sense enquesta';coverage[name]??={total:0,n:0};coverage[name].total++;if(valid(r))coverage[name].n++;}
+    return {groups,reference,responses,coverage,selected:reference.total,valid:reference.n,missing:reference.missing};
+  }
+  function summarizeCollection(data,state,indicators,response){
+    const series=indicators.filter(id=>data.headers.includes(id)).map(id=>({id,result:summarize(data,{...state,indicator:id})}));
+    if(!series.length)return null;
+    const first=series[0].result;
+    const combine=(getGroup)=>{
+      const initial=getGroup(first);
+      return {...initial,cells:Object.fromEntries(series.map(s=>{
+        const g=getGroup(s.result);
+        return [s.id,{n:g.n,count:g.counts[response]||0,missing:g.missing}];
+      }))};
+    };
+    const range=key=>[Math.min(...series.map(s=>s.result[key])),Math.max(...series.map(s=>s.result[key]))];
+    return {collection:true,series,response,responses:series.map(s=>s.id),
+      groups:first.groups.map((_,i)=>combine(r=>r.groups[i])),reference:combine(r=>r.reference),
+      selected:first.selected,valid:Math.max(...series.map(s=>s.result.valid)),validRange:range('valid'),missingRange:range('missing'),
+      coverage:Object.fromEntries(Object.keys(first.coverage).map(name=>{
+        const bases=series.map(s=>s.result.coverage[name].n);
+        return [name,{total:first.coverage[name].total,min:Math.min(...bases),max:Math.max(...bases)}];
+      }))};
+  }
+  const api={normalize,missing,profile,nonresponse,parseCSV,summarize,summarizeCollection};
+  if(typeof module!=='undefined')module.exports=api;else root.ProfileCore=api;
+})(typeof window!=='undefined'?window:globalThis);

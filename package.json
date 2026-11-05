@@ -1,0 +1,1 @@
+{"name":"perfils-electorals","version":"0.2.0","private":true,"scripts":{"start":"node server.cjs","test":"node tests/core.test.cjs && node tests/collection.test.cjs && node tests/data-loader.test.cjs"}}
