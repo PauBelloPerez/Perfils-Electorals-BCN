@@ -1,12 +1,12 @@
 const assert=require('node:assert/strict');
 const C=require('../core.js'),T=require('../table.js');
-const fields=['ID2','SEXE','estudi','ANY','IDEO_3','MUNI_VOT','INT_VOT','PERFIL_POLITIC','x','MENCIO_TEMES_Habitatge'];
+const fields=['ID2','SEXE','estudi','ANY','IDEO_3','MUNI_VOT','INT_VOT','PERFIL_POLITIC','x','MENCIO_TEMES_Habitatge','DISTRICTE'];
 const data={headers:fields,rows:[
- ['A','Home','One','2025','Esquerra','PSC','Indecís',"Satisfets d'esquerres",'Sí','1'],
- ['B','Dona','One','2026','Esquerra','ERC','PSC',"Satisfets d'esquerres",'No','0'],
- ['A','Home','Two','2026','No posicionats','Sense partit /Abstenció','Abstenció','No simpatitzants','Sí',null],
- [null,'Dona','Two','2026',null,'No disponible',null,null,'No','1'],
- ['B','Dona','One','2025','Dreta','PSC','PSC','Satisfets de dretes',null,'0'],
+ ['A','Home','One','2025','Esquerra','PSC','Indecís',"Satisfets d'esquerres",'Sí','1','Ciutat Vella'],
+ ['B','Dona','One','2026','Esquerra','ERC','PSC',"Satisfets d'esquerres",'No','0','Eixample'],
+ ['A','Home','Two','2026','No posicionats','Sense partit /Abstenció','Abstenció','No simpatitzants','Sí',null,'Ciutat Vella'],
+ [null,'Dona','Two','2026',null,'No disponible',null,null,'No','1',null],
+ ['B','Dona','One','2025','Dreta','PSC','PSC','Satisfets de dretes',null,'0','Eixample'],
 ]};
 const state={indicator:'x',groupBy:'IDEO_3',sex:'compare'};
 let r=C.summarize(data,state);
@@ -42,4 +42,4 @@ for(const grouping of C.GROUPINGS){
   assert.ok(html.includes(grouping.label));assert.ok(!html.includes('NaN')&&!html.includes('undefined'));
  }
 }
-console.log('PASS: all five reference variables, category/sex filters across all surveys, missing vs explicit political categories, collections and table captions.');
+console.log('PASS: all six reference variables, category/sex filters across all surveys, missing vs explicit political categories, collections and table captions.');

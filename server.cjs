@@ -3,7 +3,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const root = __dirname;
 const types = {'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.csv':'text/csv; charset=utf-8'};
-const publicFiles=new Set(['index.html','styles.css','catalog.js','response-metadata.js','core.js','data-loader.js','table.js','app.js','data.csv']);
+const publicFiles=new Set(['index.html','styles.css','catalog.js','response-metadata.js','core.js','data-loader.js','table.js','table-export.js','app.js','data.csv']);
 const server = http.createServer((req,res)=>{
   let target;
   try { target = path.resolve(root, '.'+decodeURIComponent(new URL(req.url,'http://localhost').pathname)); } catch {res.writeHead(400).end();return;}

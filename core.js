@@ -15,6 +15,7 @@
   const sexesFor=sex=>sex==='compare'?orderedResponses('SEXE',['Home','Dona']):sex==='all'?['Total']:[sex];
   const GROUPINGS=[
     {id:'ID2',label:'Perfils sociodemogràfics'},
+    {id:'DISTRICTE',label:'Districte'},
     {id:'IDEO_3',label:'Ideologia agrupada',order:['Esquerra','Dreta','No posicionats']},
     {id:'MUNI_VOT',label:'Record de vot municipal'},
     {id:'INT_VOT',label:'Intenció de vot municipal'},
@@ -69,18 +70,26 @@
     const buckets=new Map();
     for(const row of selected){const name=groupName(row);if(!buckets.has(name))buckets.set(name,[]);buckets.get(name).push(row);}
     const profiles=[...buckets.keys()].sort((a,b)=>compareProfiles(a,b,groupBy));
-    const sexes=sexesFor(state.sex);
-    const make=(name,sex,source)=>{
-      const totalRows=source.filter(r=>sex==='Total'||r[idx.SEXE]===sex);
+    const political=state.sex==='PERFIL_POLITIC';
+    if(political&&idx.PERFIL_POLITIC===undefined)throw Error('Variable de desglossament no disponible: PERFIL_POLITIC');
+    const breakdownBy=political?'PERFIL_POLITIC':state.sex==='all'?'':'SEXE';
+    const breakdownLabel=political?'Posicionament respecte al PSC':breakdownBy?'Sexe':'Sense desglossar';
+    const breakdownMissingLabel='Sense dada de desglossament';
+    const subgroupName=r=>missing(r[idx.PERFIL_POLITIC])?breakdownMissingLabel:String(r[idx.PERFIL_POLITIC]);
+    const rankLabel=v=>v===breakdownMissingLabel?missingGroupLabel('PERFIL_POLITIC'):v;
+    const subgroups=political?[...new Set(selected.map(subgroupName))].sort((a,b)=>compareProfiles(rankLabel(a),rankLabel(b),'PERFIL_POLITIC')):sexesFor(state.sex);
+    const make=(name,subgroup,source,total=false)=>{
+      const totalRows=source.filter(r=>total||(political?subgroupName(r)===subgroup:subgroup==='Total'||r[idx.SEXE]===subgroup));
       const usable=totalRows.filter(valid);const counts=Object.fromEntries(responses.map(v=>[v,0]));
       usable.forEach(r=>counts[r[idx[state.indicator]]]++);
-      return {profile:name,sex,total:totalRows.length,n:usable.length,missing:totalRows.length-usable.length,counts};
+      return {profile:name,subgroup,sex:political?'Total':subgroup,total:totalRows.length,n:usable.length,missing:totalRows.length-usable.length,counts};
     };
-    const groups=profiles.flatMap(p=>sexes.map(s=>make(p,s,buckets.get(p))));
-    const reference=make('Conjunt seleccionat',state.sex==='Home'||state.sex==='Dona'?state.sex:'Total',selected);
+    const groups=profiles.flatMap(p=>subgroups.map(s=>make(p,s,buckets.get(p))));
+    const reference=make('Conjunt seleccionat',state.sex==='Home'||state.sex==='Dona'?state.sex:'Total',selected,political);
     const coverage={};for(const r of selected){const name=r[idx.estudi]??'Sense enquesta';coverage[name]??={total:0,n:0};coverage[name].total++;if(valid(r))coverage[name].n++;}
     const groupingMissing=selected.filter(r=>missing(r[idx[groupBy]])&&(reference.sex==='Total'||r[idx.SEXE]===reference.sex)).length;
-    return {groups,reference,responses,coverage,selected:reference.total,valid:reference.n,missing:reference.missing,groupBy,groupLabel:grouping.label,missingGroupLabel:missingGroupLabel(groupBy),groupingMissing};
+    const breakdownMissing=political?selected.filter(r=>missing(r[idx.PERFIL_POLITIC])).length:0;
+    return {groups,reference,responses,coverage,selected:reference.total,valid:reference.n,missing:reference.missing,groupBy,groupLabel:grouping.label,missingGroupLabel:missingGroupLabel(groupBy),groupingMissing,breakdownBy,breakdownLabel,subgroups,breakdownMissing,breakdownMissingLabel};
   }
   function summarizeCollection(data,state,indicators,response){
     const series=indicators.filter(id=>data.headers.includes(id)).map(id=>({id,result:summarize(data,{...state,indicator:id})}));
@@ -95,6 +104,7 @@
     };
     const range=key=>[Math.min(...series.map(s=>s.result[key])),Math.max(...series.map(s=>s.result[key]))];
     return {collection:true,series,response,responses:series.map(s=>s.id),groupBy:first.groupBy,groupLabel:first.groupLabel,missingGroupLabel:first.missingGroupLabel,groupingMissing:first.groupingMissing,
+      breakdownBy:first.breakdownBy,breakdownLabel:first.breakdownLabel,subgroups:first.subgroups,breakdownMissing:first.breakdownMissing,breakdownMissingLabel:first.breakdownMissingLabel,
       groups:first.groups.map((_,i)=>combine(r=>r.groups[i])),reference:combine(r=>r.reference),
       selected:first.selected,valid:Math.max(...series.map(s=>s.result.valid)),validRange:range('valid'),missingRange:range('missing'),
       coverage:Object.fromEntries(Object.keys(first.coverage).map(name=>{

@@ -24,7 +24,7 @@ const option=(value,label)=>`<option value="${esc(value)}">${esc(label??value)}<
 const labelResponse=v=>isCollection()?(v==='1'?'Sí':v==='0'?'No':v):state.indicator.startsWith('MENCIO_TEMES_')?(v==='1'?'Sí, el menciona':v==='0'?'No el menciona':v):String(v).replaceAll('_',' ');
 function dimensions(){
   const sexes=C.sexesFor('compare');
-  $('sex').innerHTML=option('compare',sexes.join(' i '))+option('all','Total, sense desglossar')+sexes.map(s=>option(s,'Només '+s)).join('');
+  $('sex').innerHTML=option('compare',sexes.join(' i '))+option('all','Total, sense desglossar')+sexes.map(s=>option(s,'Només '+s)).join('')+`<option value="PERFIL_POLITIC" ${data.headers.includes('PERFIL_POLITIC')?'':'disabled'}>Posicionament respecte al PSC${data.headers.includes('PERFIL_POLITIC')?'':' · no disponible'}</option>`;
   $('sex').value=state.sex;
   $('group-by').innerHTML=C.GROUPINGS.map(g=>`<option value="${g.id}" ${data.headers.includes(g.id)?'':'disabled'}>${esc(g.label)}${data.headers.includes(g.id)?'':' · no disponible'}</option>`).join('');
   $('group-by').value=state.groupBy;
@@ -55,7 +55,7 @@ function render(){
   result=collection?C.summarizeCollection(data,state,mentionIndicators(),response):C.summarize(data,state);
   $('analysis-title').textContent=result.groupLabel;
   $('grouping-note').hidden=false;
-  $('grouping-note').textContent=`Referència: ${result.groupLabel} (${result.groupBy}). ${num(result.groupingMissing)} registres seleccionats sense dada de referència, agrupats a «${result.missingGroupLabel}».`;
+  $('grouping-note').textContent=`Referència: ${result.groupLabel} (${result.groupBy}). ${num(result.groupingMissing)} registres seleccionats sense dada de referència, agrupats a «${result.missingGroupLabel}». Desglossament: ${result.breakdownLabel}.${result.breakdownBy==='PERFIL_POLITIC'?` ${num(result.breakdownMissing)} registres a «${result.breakdownMissingLabel}».`:''}`;
   $('breadcrumb').textContent=item.group;
   $('indicator-title').textContent=item.label;
   $('description').textContent=item.description;
@@ -72,33 +72,80 @@ function render(){
   $('response').innerHTML=choices.map(v=>option(v,labelResponse(v))).join('');
   $('response').value=response;$('response').disabled=!choices.length;
   $('source-badge').textContent=`${data.source} · ${num(data.rows.length)} registres`;
-  $('source-text').textContent=`Fitxer: ${data.source}. ${num(data.rows.length)} registres i ${data.headers.length} variables. Indicador: ${state.indicator}. Referència: ${result.groupLabel} (${result.groupBy}). Totes les enquestes i tots els anys conjuntament.`;
+  $('source-text').textContent=`Fitxer: ${data.source}. ${num(data.rows.length)} registres i ${data.headers.length} variables. Indicador: ${state.indicator}. Referència: ${result.groupLabel} (${result.groupBy}). Desglossament: ${result.breakdownLabel}. Totes les enquestes i tots els anys conjuntament.`;
   $('coverage').innerHTML=Object.entries(result.coverage).map(([name,c])=>`<span>${esc(name)}: ${collection?range([c.min,c.max]):c.n}/${c.total} amb dada${collection?' per indicador':''}</span>`).join('');
   if(!collection)renderChart();renderTable();setView(view);
 }
 function renderChart(){
   $('response-title').textContent=labelResponse(response)||'Sense respostes per a aquesta selecció';
-  const sexes=C.sexesFor(state.sex);
-  $('legend').innerHTML=sexes.map(s=>`<span><i style="background:${colors[s]}"></i>${s}</span>`).join('');
+  const palette=['#16766d','#bb5b18','#5269b0','#945397','#79912d','#65879a'];
+  const politicalCategories=C.orderedResponses('PERFIL_POLITIC',new Set([...C.GROUPINGS.find(g=>g.id==='PERFIL_POLITIC').order,...result.subgroups]));
+  const color=s=>result.breakdownBy==='PERFIL_POLITIC'?(s===result.breakdownMissingLabel?'#7d8581':palette[politicalCategories.indexOf(s)%palette.length]):colors[s];
+  $('legend').innerHTML=result.subgroups.map(s=>`<span><i style="background:${color(s)}"></i>${esc(s)}</span>`).join('');
   const ref=result.reference, value=ref.n?fmt((ref.counts[response]||0)/ref.n*100)+'%':'—';
-  $('reference').innerHTML=`<div class="reference"><span>Conjunt seleccionat · ${esc(ref.sex)}</span><span><b>${value}</b> &nbsp; ${num(ref.counts[response]||0)} de ${num(ref.n)} respostes</span></div>`;
+  $('reference').innerHTML=`<div class="reference"><span>Conjunt seleccionat · ${esc(ref.subgroup)}</span><span><b>${value}</b> &nbsp; ${num(ref.counts[response]||0)} de ${num(ref.n)} respostes</span></div>`;
   const profiles=[...new Set(result.groups.map(g=>g.profile))];
   $('chart').innerHTML=result.valid?profiles.map(p=>`<div class="chart-row"><div class="profile-name">${esc(p)}</div><div class="bars">${result.groups.filter(g=>g.profile===p).map(g=>{
     const n=g.counts[response]||0,pct=g.n?n/g.n*100:0;
-    return `<div class="bar-line" role="img" aria-label="${esc(p)}, ${g.sex}: ${g.n?fmt(pct)+' per cent':'sense base'}, ${n} de ${g.n} respostes"><div class="bar ${g.sex.toLowerCase()}" style="width:${pct}%"></div><span class="bar-label" style="--pct:${pct}%">${g.n&&g.n<30?'<i class="low-dot"></i>':''}${g.n?fmt(pct)+'%':'—'} <small>n=${g.n}</small></span></div>`;
-  }).join('')}</div></div>`).join(''):'<div class="empty">No hi ha respostes amb aquesta selecció.<br>Prova un altre indicador, grup de referència o desglossament per sexe.</div>';
+    return `<div class="bar-line" role="img" aria-label="${esc(p)}, ${esc(g.subgroup)}: ${g.n?fmt(pct)+' per cent':'sense base'}, ${n} de ${g.n} respostes"><div class="bar" style="width:${pct}%;background:${color(g.subgroup)}"></div><span class="bar-label" style="--pct:${pct}%">${g.n&&g.n<30?'<i class="low-dot"></i>':''}${g.n?fmt(pct)+'%':'—'} <small>n=${g.n}</small></span></div>`;
+  }).join('')}</div></div>`).join(''):'<div class="empty">No hi ha respostes amb aquesta selecció.<br>Prova un altre indicador, grup de referència o desglossament.</div>';
 }
 function renderTable(){
   $('table').innerHTML=ProfileTable.render(result,tableOptions,isCollection()?mentionLabel:labelResponse);
+  for(const id of ['export-xlsx','export-copy','export-pdf','export'])$(id).disabled=!result.valid;
+  $('export-status').textContent='';
+}
+function exportSnapshot(){
+  const category=state.profiles?state.profiles.join(', '):'Totes les categories';
+  return TableExport.capture($('table').querySelector('table'),{
+    title:$('indicator-title').textContent+(isCollection()?' · '+labelResponse(response):''),
+    description:$('description').textContent,
+    context:`Referència: ${result.groupLabel}. Desglossament: ${result.breakdownLabel}. Selecció: ${category}. ${state.sex==='Home'||state.sex==='Dona'?'Només '+state.sex+'. ':''}Sense ponderar. NS/NC ${state.excludeNS?'exclosos':'inclosos'}. Tots els anys i enquestes. Font: ${data.source}.`,
+    fixedColumns:tableOptions.orientation==='columns'?(tableOptions.reference?2:1):(isCollection()?2:3)
+  });
+}
+function saveTable(){
+  try{
+    const blob=new Blob([TableExport.xlsx(exportSnapshot())],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    const url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download=`taula_${state.groupBy}_${result.breakdownBy||'TOTAL'}_${state.indicator}.xlsx`;link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+    $('export-status').textContent='Excel preparat amb el format de la taula.';
+  }catch(error){$('export-status').textContent=error.message;}
+}
+async function copyTable(){
+  $('export-copy').disabled=true;
+  try{
+    const snapshot=exportSnapshot();
+    if(await TableExport.copyFormatted(snapshot)){
+      $('export-status').textContent='Taula copiada amb format. Enganxa-la a Excel, Word o un document.';
+    }else manualCopy(snapshot);
+  }catch(error){$('export-status').textContent=error.message||'No s’ha pogut preparar la taula.';}
+  finally{$('export-copy').disabled=!result?.valid;}
+}
+function selectCopyTable(){
+  const container=$('copy-table');container.focus({preventScroll:true});
+  const range=document.createRange();range.selectNodeContents(container);
+  const selection=window.getSelection();selection.removeAllRanges();selection.addRange(range);
+  $('copy-status').textContent='Taula seleccionada. Prem Ctrl+C (o ⌘C al Mac) i enganxa-la al document de destinació.';
+}
+function manualCopy(snapshot){
+  try{
+    $('copy-table').innerHTML=TableExport.html(snapshot||exportSnapshot());
+    $('copy-preview').showModal();selectCopyTable();
+    $('export-status').textContent='Pots copiar la taula seleccionada amb Ctrl+C sense activar permisos.';
+  }catch(error){$('export-status').textContent=error.message;}
+}
+function previewTable(){
+  try{$('export-pages').innerHTML=TableExport.printHTML(exportSnapshot());$('export-preview').showModal();}
+  catch(error){$('export-status').textContent=error.message;}
 }
 function setView(next){view=isCollection()?'table':next;$('chart-view').hidden=view!=='chart';$('table-view').hidden=view!=='table';$('response-control').hidden=view!=='chart'&&!isCollection();$('chart-tab').disabled=isCollection();$('chart-tab').title=isCollection()?'La vista conjunta es presenta en taula':'';$('chart-tab').setAttribute('aria-pressed',view==='chart');$('table-tab').setAttribute('aria-pressed',view==='table');}
 function exportCSV(){
-  const lines=[['conjunt','indicador','descripcio','variable_referencia','referencia','enquesta','any','ponderacio','exclou_ns_nc','perfil','sexe','resposta','recompte','base','percentatge','excloses']];
+  const lines=[['conjunt','indicador','descripcio','variable_referencia','referencia','enquesta','any','ponderacio','exclou_ns_nc','perfil','sexe','variable_desglossament','desglossament','subgrup','resposta','recompte','base','percentatge','excloses']];
   const series=isCollection()?result.series:[{id:state.indicator,result}];
-  for(const s of series)for(const g of [s.result.reference,...s.result.groups])for(const v of isCollection()?[response]:s.result.responses)lines.push([isCollection()?'Menció problema':'',s.id,catalog.find(i=>i.id===s.id)?.description||mentionLabel(s.id),result.groupBy,result.groupLabel,'Totes','Tots','Sense ponderar',state.excludeNS?'Sí':'No',g.profile,g.sex,isCollection()?labelResponse(v):v,g.counts[v]||0,g.n,g.n?((g.counts[v]||0)/g.n*100).toFixed(4).replace('.',','):'',g.missing]);
+  for(const s of series)for(const g of [s.result.reference,...s.result.groups])for(const v of isCollection()?[response]:s.result.responses)lines.push([isCollection()?'Menció problema':'',s.id,catalog.find(i=>i.id===s.id)?.description||mentionLabel(s.id),result.groupBy,result.groupLabel,'Totes','Tots','Sense ponderar',state.excludeNS?'Sí':'No',g.profile,g.sex,result.breakdownBy,result.breakdownLabel,g.subgroup,isCollection()?labelResponse(v):v,g.counts[v]||0,g.n,g.n?((g.counts[v]||0)/g.n*100).toFixed(4).replace('.',','):'',g.missing]);
   const safe=v=>{v=String(v??'');if(/^[=+@\-\t\r]/.test(v))v="'"+v;return '"'+v.replaceAll('"','""')+'"';};
   const blob=new Blob(['\uFEFF'+lines.map(row=>row.map(safe).join(';')).join('\r\n')],{type:'text/csv;charset=utf-8'});
-  const url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download=`perfils_${state.groupBy}_${state.indicator}.csv`;link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+  const url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download=`perfils_${state.groupBy}_${result.breakdownBy||'TOTAL'}_${state.indicator}.csv`;link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
 function reset(){if(!data)return;state={indicator:data.headers.includes('PRIMER_PROBLEMA')?'PRIMER_PROBLEMA':catalog.find(v=>data.headers.includes(v.id)).id,groupBy:'ID2',sex:'compare',excludeNS:false,profiles:null};response='';$('search').value='';$('sex').value='compare';$('exclude-ns').checked=false;$('profile-details').open=false;dimensions();navigation();render();}
 $('search').oninput=navigation;
@@ -116,6 +163,10 @@ $('group-by').onchange=()=>{state.groupBy=$('group-by').value;state.profiles=nul
 $('exclude-ns').onchange=()=>{state.excludeNS=$('exclude-ns').checked;render();};
 $('response').onchange=()=>{response=$('response').value;if(isCollection())render();else renderChart();};
 $('chart-tab').onclick=()=>setView('chart');$('table-tab').onclick=()=>setView('table');$('export').onclick=exportCSV;$('reset').onclick=reset;
+$('export-xlsx').onclick=saveTable;$('export-copy').onclick=copyTable;$('export-pdf').onclick=previewTable;
+$('copy-select').onclick=selectCopyTable;
+$('copy-close').onclick=()=>{$('copy-preview').close();window.getSelection()?.removeAllRanges();};
+$('export-print').onclick=()=>window.print();$('export-close').onclick=()=>$('export-preview').close();
 function adoptData(next){
   const unknown=next.headers.filter(k=>!['ID2','SEXE','estudi','ANY'].includes(k)&&!catalog.some(v=>v.id===k));
   catalog=[...catalog,...unknown.map(id=>({id,label:id.replaceAll('_',' '),description:C.descriptionFor(id)||'Descripció pendent de completar.',group:'Altres indicadors',warning:C.descriptionFor(id)?'':'Variable nova sense descripció al diccionari.'}))];

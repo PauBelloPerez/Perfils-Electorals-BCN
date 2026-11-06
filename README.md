@@ -21,11 +21,13 @@ El servidor incluido escucha solo en `127.0.0.1` y sirve únicamente los archivo
 
 ## Uso
 
-El desplegable **Analitza per** elige la variable de referencia de gráficos, tablas y exportaciones: perfiles sociodemográficos (`ID2`, por defecto), ideología agrupada (`IDEO_3`), recuerdo de voto municipal (`MUNI_VOT`), intención de voto municipal (`INT_VOT`) o posicionamiento respecto al PSC (`PERFIL_POLITIC`). Las opciones ausentes del archivo aparecen desactivadas. También se pueden consultar las variables políticas como indicadores en el menú temático.
+El desplegable **Analitza per** elige la variable de referencia de gráficos, tablas y exportaciones: perfiles sociodemográficos (`ID2`, por defecto), distrito (`DISTRICTE`), ideología agrupada (`IDEO_3`), recuerdo de voto municipal (`MUNI_VOT`), intención de voto municipal (`INT_VOT`) o posicionamiento respecto al PSC (`PERFIL_POLITIC`). Las opciones ausentes del archivo aparecen desactivadas. También se pueden consultar las variables políticas como indicadores en el menú temático.
 
 Al cambiar la referencia se seleccionan todas sus categorías y se conservan el indicador y el desglose por sexo. Los porcentajes se calculan dentro de cada categoría y sexo; el conjunto «Menció problema» conserva además la base propia de cada indicador. La exportación identifica la variable de referencia y su descripción. `Restableix` vuelve a `ID2`.
 
 Los datos ausentes de la referencia política (`NA`, vacíos, `No disponible`, etc.) se agrupan como **Sense dada de referència** y se pueden desmarcar en el selector de categorías. En `ID2` se mantiene **Sense perfil**. «No posicionats», «Indecís» y las categorías de abstención son respuestas propias y se conservan, sin confundirlas con valores ausentes. La opción de excluir NS/NC afecta al indicador, no a las categorías de referencia.
+
+En **Desglossament** se puede elegir también **Posicionament respecte al PSC** (`PERFIL_POLITIC`). Cada distrito o categoría de referencia se divide en los posicionamientos presentes en la selección, ordenados según el Excel. Cada cruce tiene su propia base; los casos sin posicionamiento forman **Sense dada de desglossament** y se conservan en el total. Las tablas mantienen un encabezado por categoría y subcolumnas por posicionamiento; los gráficos y el conjunto «Menció problema» utilizan el mismo cruce. La exportación identifica `variable_desglossament`, `desglossament` y `subgrup`; la columna `sexe` indica `Total` en el desglose político. Las opciones de sexo y total siguen disponibles. Si el CSV no tiene una variable, su opción se desactiva.
 
 El menú agrupa los indicadores por temas. Busca por etiqueta, descripción o código. Selecciona las categorías de referencia y el desglose por sexo. Todas las encuestas y todos los años se analizan conjuntamente, sin filtros por origen ni periodo. El gráfico compara una respuesta; la tabla muestra todas las respuestas y sus recuentos. La exportación CSV incluye los filtros, las bases y el criterio de cálculo, e indica «Totes» en encuesta y «Tots» en año. El apartado de origen conserva la cobertura de cada encuesta como información descriptiva.
 
@@ -34,6 +36,17 @@ La tabla presenta los perfiles en columnas por defecto, con un único encabezado
 En **Preocupacions ciutadanes → Menció problema · tots els problemes**, una tabla reúne todas las columnas `MENCIO_TEMES_` presentes en el CSV. El selector **Resposta que es mostra** alterna Sí (1) y No (0). Cada problema conserva su propia base de respuesta por perfil y sexo, visible en cada celda, incluso si se ocultan los recuentos. Las cifras superiores muestran el mínimo y máximo de bases entre indicadores, no una suma de respuestas. Los porcentajes entre problemas no tienen que sumar 100%. Se mantienen filtros y opciones de tabla; esta vista conjunta se ofrece en tabla. Su exportación incluye el conjunto, cada indicador y solo la respuesta elegida.
 
 `Carrega un CSV` sustituye temporalmente los datos en el navegador. Admite UTF-8, separadores punto y coma, coma o tabulación, campos entrecomillados y saltos dentro de campos. Requiere `ID2`, `SEXE`, `estudi`, `ANY` y al menos un indicador conocido. Al recargar, vuelve a leer `data.csv` del servidor, sin caché. Si el archivo falta o es inválido, muestra un aviso; no sustituye silenciosamente los datos por una muestra. Desde `file://`, vuelve a solicitar una selección manual.
+
+## Exportar la tabla con formato
+
+En **Exporta taula** hay cuatro opciones. Todas usan la selección actual:
+
+- **Excel amb format (.xlsx)** genera un libro con la disposición visible, encabezados combinados, colores, bases y recuentos según las opciones activadas. Los porcentajes sin texto adicional se guardan como valores numéricos; las celdas con recuentos o bases en varias líneas conservan ese texto tal como aparece en pantalla. Los encabezados quedan inmovilizados. No necesita Excel instalado ni conexión externa.
+- **Copia la taula amb format** copia HTML y texto tabulado para pegar en Excel, Word o documentos compatibles. El formato final depende de la aplicación de destino. Intenta primero la API de portapapeles y, si no está disponible o rechaza la escritura, la copia de una selección con formato. Si ambas fallan, abre la tabla seleccionada para copiar con Ctrl+C (⌘C en Mac), sin pedir cambios de permisos. La alternativa manual solo aparece si fallan los dos intentos automáticos; no ocupa una opción adicional en el menú. No muestra un mensaje de éxito cuando la copia automática falla.
+- **Imprimeix / Desa com a PDF** abre una vista previa. El botón de impresión permite elegir «Guardar como PDF» en el navegador. Usa A4 horizontal, divide las tablas anchas por bloques y repite las etiquetas y columnas de referencia o base para mantenerlas legibles. Los encabezados se repiten en los saltos verticales. Incluye título, selección, criterio y leyenda de bases pequeñas.
+- **Dades en CSV** conserva la descarga de datos detallados para otros análisis.
+
+Se exporta la tabla completa, incluidas las filas y columnas fuera del área desplazable; desde la vista de gráfico se utiliza la tabla correspondiente. Los porcentajes no se recalculan al exportar. Sin respuestas válidas, las acciones se desactivan.
 
 ## Criterios
 
@@ -55,6 +68,7 @@ En **Preocupacions ciutadanes → Menció problema · tots els problemes**, una 
 - `core.js`: lectura de CSV y cálculo de agregados.
 - `app.js`: interacción y exportación.
 - `table.js`: tablas configurables y conjuntos de indicadores.
+- `table-export.js`: captura de la tabla, copia con formato, vista de impresión y exportación XLSX sin dependencias.
 - `data-loader.js`: carga automática de `data.csv`, validación y lectura manual.
 - `data.csv`: base que añade el responsable manualmente; no incluida en el primer envío.
 - `server.cjs`: servidor local sin dependencias.
