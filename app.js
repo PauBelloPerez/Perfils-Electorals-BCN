@@ -4,7 +4,11 @@ const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const fmt=n=>new Intl.NumberFormat('ca-ES',{maximumFractionDigits:1,minimumFractionDigits:1}).format(n);
 const num=n=>new Intl.NumberFormat('ca-ES').format(n);
 const colors={Home:'#16766d',Dona:'#d78a56',Total:'#65879a'};
-let data=null, catalog=window.INDICATORS, result, view='chart', response='', loadSequence=0;
+const withDescription=item=>{
+  const description=C.descriptionFor(item.id);
+  return description?{...item,description,warning:item.warning?.startsWith('Variable sense descripció')?'':item.warning}:item;
+};
+let data=null, catalog=window.INDICATORS.map(withDescription), result, view='chart', response='', loadSequence=0;
 let state={indicator:'PRIMER_PROBLEMA',groupBy:'ID2',sex:'compare',excludeNS:false,profiles:null};
 const mentionSet={id:'__MENCIO_PROBLEMA',label:'Menció problema · tots els problemes',group:'Preocupacions ciutadanes',description:'Compara tots els problemes en una sola taula. Tria Sí o No per veure el percentatge de cada resposta, amb una base pròpia per indicador.'};
 const isCollection=()=>state.indicator===mentionSet.id;
@@ -19,6 +23,9 @@ try{
 const option=(value,label)=>`<option value="${esc(value)}">${esc(label??value)}</option>`;
 const labelResponse=v=>isCollection()?(v==='1'?'Sí':v==='0'?'No':v):state.indicator.startsWith('MENCIO_TEMES_')?(v==='1'?'Sí, el menciona':v==='0'?'No el menciona':v):String(v).replaceAll('_',' ');
 function dimensions(){
+  const sexes=C.sexesFor('compare');
+  $('sex').innerHTML=option('compare',sexes.join(' i '))+option('all','Total, sense desglossar')+sexes.map(s=>option(s,'Només '+s)).join('');
+  $('sex').value=state.sex;
   $('group-by').innerHTML=C.GROUPINGS.map(g=>`<option value="${g.id}" ${data.headers.includes(g.id)?'':'disabled'}>${esc(g.label)}${data.headers.includes(g.id)?'':' · no disponible'}</option>`).join('');
   $('group-by').value=state.groupBy;
   referenceCategories();
@@ -60,7 +67,7 @@ function render(){
   $('missing-n').previousElementSibling.textContent=collection?'Excloses per indicador (mín.–màx.)':'Sense dada / excloses';
   $('valid-n').textContent=collection?range(result.validRange):num(result.valid);
   $('missing-n').textContent=collection?range(result.missingRange):num(result.missing);
-  if(!collection&&!result.responses.includes(response))response=state.indicator.startsWith('MENCIO_TEMES_')&&result.responses.includes('1')?'1':[...result.responses].sort((a,b)=>result.reference.counts[b]-result.reference.counts[a])[0]??'';
+  if(!collection&&!result.responses.includes(response))response=result.responses[0]??'';
   const choices=collection?['1','0']:result.responses;
   $('response').innerHTML=choices.map(v=>option(v,labelResponse(v))).join('');
   $('response').value=response;$('response').disabled=!choices.length;
@@ -71,7 +78,7 @@ function render(){
 }
 function renderChart(){
   $('response-title').textContent=labelResponse(response)||'Sense respostes per a aquesta selecció';
-  const sexes=state.sex==='compare'?['Home','Dona']:state.sex==='all'?['Total']:[state.sex];
+  const sexes=C.sexesFor(state.sex);
   $('legend').innerHTML=sexes.map(s=>`<span><i style="background:${colors[s]}"></i>${s}</span>`).join('');
   const ref=result.reference, value=ref.n?fmt((ref.counts[response]||0)/ref.n*100)+'%':'—';
   $('reference').innerHTML=`<div class="reference"><span>Conjunt seleccionat · ${esc(ref.sex)}</span><span><b>${value}</b> &nbsp; ${num(ref.counts[response]||0)} de ${num(ref.n)} respostes</span></div>`;
@@ -111,7 +118,7 @@ $('response').onchange=()=>{response=$('response').value;if(isCollection())rende
 $('chart-tab').onclick=()=>setView('chart');$('table-tab').onclick=()=>setView('table');$('export').onclick=exportCSV;$('reset').onclick=reset;
 function adoptData(next){
   const unknown=next.headers.filter(k=>!['ID2','SEXE','estudi','ANY'].includes(k)&&!catalog.some(v=>v.id===k));
-  catalog=[...catalog,...unknown.map(id=>({id,label:id.replaceAll('_',' '),description:'Descripció pendent de completar.',group:'Altres indicadors',warning:'Variable nova sense descripció al diccionari.'}))];
+  catalog=[...catalog,...unknown.map(id=>({id,label:id.replaceAll('_',' '),description:C.descriptionFor(id)||'Descripció pendent de completar.',group:'Altres indicadors',warning:C.descriptionFor(id)?'':'Variable nova sense descripció al diccionari.'}))];
   data=next;
   document.querySelectorAll('.filters,.workspace,.technical').forEach(el=>el.hidden=false);
   $('search').disabled=false;$('reset').disabled=false;

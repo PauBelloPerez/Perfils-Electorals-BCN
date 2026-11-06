@@ -11,10 +11,11 @@ const fixture={headers:['ID2','SEXE','estudi','ANY',p,q],rows:[
 const state={sex:'compare'};
 const yes=C.summarizeCollection(fixture,state,[p,q],'1');
 const no=C.summarizeCollection(fixture,state,[p,q],'0');
-assert.deepEqual(yes.groups[0].cells[p],{n:2,count:1,missing:0});
-assert.deepEqual(yes.groups[0].cells[q],{n:1,count:1,missing:1});
-assert.deepEqual(no.groups[0].cells[q],{n:1,count:0,missing:1});
-assert.equal(yes.groups[1].cells[p].n,0);
+const group=(result,name,sex)=>result.groups.find(g=>g.profile===name&&g.sex===sex);
+assert.deepEqual(group(yes,'A','Home').cells[p],{n:2,count:1,missing:0});
+assert.deepEqual(group(yes,'A','Home').cells[q],{n:1,count:1,missing:1});
+assert.deepEqual(group(no,'A','Home').cells[q],{n:1,count:0,missing:1});
+assert.equal(group(yes,'A','Dona').cells[p].n,0);
 assert.equal(yes.reference.cells[p].count,2);
 assert.deepEqual(C.summarizeCollection(fixture,{sex:'Dona'},[p,q],'0').reference.cells[q],{n:2,count:1,missing:0});
 assert.equal(C.summarizeCollection(fixture,{sex:'all',profiles:[]},[p,q],'1').valid,0);

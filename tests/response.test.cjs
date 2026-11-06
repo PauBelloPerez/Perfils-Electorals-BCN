@@ -23,6 +23,10 @@ context.fixture={source:'test.csv',headers:['ID2','SEXE','estudi','ANY','PRIMER_
  ['B','Home','Test','2025','Habitatge','1']
 ]};
 vm.runInContext('adoptData(fixture)',context);
+assert.equal(element('response-title').textContent,'Habitatge');
+assert.ok(element('response').innerHTML.indexOf('Habitatge')<element('response').innerHTML.indexOf('Inseguretat'));
+assert.equal(element('description').textContent,require('../response-metadata.js').variables.PRIMER_PROBLEMA.description);
+element('response').value='Inseguretat';element('response').onchange();
 assert.equal(element('response-title').textContent,'Inseguretat');
 element('response').value='Habitatge';element('response').onchange();
 assert.equal(element('response-title').textContent,'Habitatge');

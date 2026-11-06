@@ -47,7 +47,10 @@ En **Preocupacions ciutadanes → Menció problema · tots els problemes**, una 
 
 ## Archivos y cambios
 
-- `catalog.js`: títulos, descripciones, grupos y avisos editables.
+- `catalog.js`: títulos cortos, grupos, avisos y descripciones de respaldo.
+- `metadata/respostes_variables_ordre.xlsx`: diccionario original de variables, descripciones, respuestas y orden.
+- `response-metadata.js`: diccionario generado para el navegador; se distribuye junto con la web.
+- `scripts/import_response_metadata.py`: importador del Excel, con Python y sin dependencias externas.
 - `styles.css`: diseño adaptable a ordenador y móvil.
 - `core.js`: lectura de CSV y cálculo de agregados.
 - `app.js`: interacción y exportación.
@@ -57,10 +60,25 @@ En **Preocupacions ciutadanes → Menció problema · tots els problemes**, una 
 - `server.cjs`: servidor local sin dependencias.
 - `tests/`: pruebas con datos ficticios. Si existe la muestra local no versionada, se ejecutan también comprobaciones opcionales sobre ella.
 
-Los archivos fuente originales y la muestra de desarrollo no se incluyen en el repositorio. `data.csv` no está excluido por `.gitignore`, para permitir la incorporación manual solicitada. Revisar siempre los archivos preparados antes de un commit.
+La muestra de desarrollo no se incluye en el repositorio. `data.csv` no está excluido por `.gitignore`. Revisar siempre los archivos preparados antes de un commit.
+
+## Diccionario de respuestas y orden
+
+El Excel de `metadata/` contiene las columnas `VARIABLE`, `DESCRIPCIÓ`, `RESPOSTA` y `ORDRE`. No hace falta convertirlo a CSV. La web usa sus descripciones y ordena las respuestas por `ORDRE` numérico ascendente en tablas, selectores y exportaciones. También aplica ese orden a las categorías de referencia y al desglose por sexo (Dona, Home en el diccionario actual). Al entrar en un indicador se selecciona su primera respuesta disponible en ese orden. Los títulos cortos y los grupos temáticos se mantienen en `catalog.js`.
+
+Solo aparecen las respuestas presentes en la selección, como hasta ahora. Los valores ausentes siguen excluidos de las bases del indicador; los grupos «Sense perfil» y «Sense dada de referència» ocupan la posición de los valores ausentes del diccionario. Si una base futura introduce categorías no recogidas, se conservan y aparecen al final, ordenadas alfabéticamente. `ORDRE` ordena respuestas dentro de cada variable, no indicadores entre sí.
+
+Para actualizar el diccionario, sustituye el Excel en `metadata/` y ejecuta desde la carpeta del proyecto:
+
+```powershell
+python scripts/import_response_metadata.py
+npm test
+```
+
+El importador valida columnas, descripciones coherentes, respuestas únicas y órdenes numéricos sin duplicados. Genera `response-metadata.js` sin modificar el Excel ni `data.csv`. Para publicar la actualización debe incluirse también ese archivo generado. El diccionario actual cubre las 183 columnas y todas las respuestas observadas de la base completa; las pruebas vuelven a comprobarlo si existe `data.csv`.
 
 ## Pendiente de confirmar
 
-En la muestra inicial faltaban tres variables del Excel (MUNI_VOT, INT_VOT e IDEO_3) y quince columnas no tenían descripción. Se ha asociado explícitamente `at_VAL_instalacions` del diccionario a `cat_VAL_instalacions` de la base. La descripción de `ACCEPTACIO_PROSTITUCIO` parece copiada de especulación inmobiliaria: la interfaz lo advierte sin corregir la fuente. Revisar estas diferencias con la base completa.
+La descripción de `ACCEPTACIO_PROSTITUCIO` sigue pareciendo copiada de especulación inmobiliaria en el nuevo diccionario: la interfaz conserva el aviso sin corregir la fuente.
 
 Antes de usar la base completa, revisar equivalencia de preguntas, universos y posibles duplicidades entre encuestas, códigos de no-respuesta y las etiquetas provisionales. La prueba de capacidad con 45.000 filas repite la muestra y verifica el cálculo; no sustituye una prueba con la base completa ni mide toda la memoria del navegador.

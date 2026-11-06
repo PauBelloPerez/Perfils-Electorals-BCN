@@ -3,6 +3,16 @@
   const normalize = v => String(v??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
   const missing = v => v==null || ['', 'na','nan','null','no disponible'].includes(normalize(v));
   const nonresponse = v => /^(ns\s*\/?\s*nc|ns|nc|no ho sap|no sap|no contesta|no respon|no sap.*contesta)$/.test(normalize(v));
+  const metadata=typeof module!=='undefined'?require('./response-metadata.js'):root.RESPONSE_METADATA;
+  const responseRanks=new Map(Object.entries(metadata.variables).map(([id,entry])=>[id,new Map(entry.responses.map(r=>[r.value,r.order]))]));
+  const missingRanks=new Map(Object.entries(metadata.variables).map(([id,entry])=>[id,Math.min(...entry.responses.filter(r=>missing(r.value)).map(r=>r.order))]));
+  const descriptionFor=id=>metadata.variables[id]?.description||'';
+  function compareResponses(a,b,variable){
+    const ranks=responseRanks.get(variable),aRank=ranks?.get(String(a))??Infinity,bRank=ranks?.get(String(b))??Infinity;
+    return aRank===bRank?String(a).localeCompare(String(b),'ca',{numeric:true}):aRank<bRank?-1:1;
+  }
+  const orderedResponses=(variable,values)=>[...values].sort((a,b)=>compareResponses(a,b,variable));
+  const sexesFor=sex=>sex==='compare'?orderedResponses('SEXE',['Home','Dona']):sex==='all'?['Total']:[sex];
   const GROUPINGS=[
     {id:'ID2',label:'Perfils sociodemogràfics'},
     {id:'IDEO_3',label:'Ideologia agrupada',order:['Esquerra','Dreta','No posicionats']},
@@ -15,6 +25,11 @@
   function compareProfiles(a,b,groupBy='ID2'){
     if(a===b)return 0;
     const absent=missingGroupLabel(groupBy);
+    if(responseRanks.has(groupBy)){
+      const rank=v=>v===absent?(missingRanks.get(groupBy)??Infinity):(responseRanks.get(groupBy).get(v)??Infinity);
+      const aRank=rank(a),bRank=rank(b);
+      return aRank===bRank?a.localeCompare(b,'ca',{numeric:true}):aRank<bRank?-1:1;
+    }
     if(a===absent)return 1;if(b===absent)return -1;
     const order=GROUPINGS.find(g=>g.id===groupBy)?.order||[];
     const rank=v=>order.includes(v)?order.indexOf(v):order.length;
@@ -50,11 +65,11 @@
     const selected=data.rows.filter(r=>!state.profiles||state.profiles.includes(groupName(r)));
     const valid=r=>!missing(r[idx[state.indicator]])&&(!state.excludeNS||!nonresponse(r[idx[state.indicator]]));
     const available=selected.filter(valid);
-    const responses=[...new Set(available.map(r=>r[idx[state.indicator]]))].sort((a,b)=>String(a).localeCompare(String(b),'ca',{numeric:true}));
+    const responses=orderedResponses(state.indicator,new Set(available.map(r=>r[idx[state.indicator]])));
     const buckets=new Map();
     for(const row of selected){const name=groupName(row);if(!buckets.has(name))buckets.set(name,[]);buckets.get(name).push(row);}
     const profiles=[...buckets.keys()].sort((a,b)=>compareProfiles(a,b,groupBy));
-    const sexes=state.sex==='compare'?['Home','Dona']:state.sex==='all'?['Total']:[state.sex];
+    const sexes=sexesFor(state.sex);
     const make=(name,sex,source)=>{
       const totalRows=source.filter(r=>sex==='Total'||r[idx.SEXE]===sex);
       const usable=totalRows.filter(valid);const counts=Object.fromEntries(responses.map(v=>[v,0]));
@@ -87,6 +102,6 @@
         return [name,{total:first.coverage[name].total,min:Math.min(...bases),max:Math.max(...bases)}];
       }))};
   }
-  const api={GROUPINGS,normalize,missing,profile,compareProfiles,nonresponse,parseCSV,summarize,summarizeCollection};
+  const api={GROUPINGS,normalize,missing,profile,compareProfiles,compareResponses,orderedResponses,sexesFor,descriptionFor,nonresponse,parseCSV,summarize,summarizeCollection};
   if(typeof module!=='undefined')module.exports=api;else root.ProfileCore=api;
 })(typeof window!=='undefined'?window:globalThis);
