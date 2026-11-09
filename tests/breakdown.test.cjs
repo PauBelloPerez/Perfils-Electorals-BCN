@@ -54,3 +54,22 @@ if(fs.existsSync(file)){
  console.log('PASS: independent full-data counts and bases for district/PSC and profile/PSC crossings.');
 }
 console.log('PASS: district order, PSC breakdown bases, missing categories, sex fallback, empty/filtered selections and collection/table layouts.');
+
+const ageData={headers:[...data.headers,'EDAT'],rows:data.rows.map((row,i)=>[...row,['>65 Anys','<25 Anys','<25 Anys',null,'>65 Anys','De 35 A 44 Anys'][i]])};
+const ages=C.summarize(ageData,{groupBy:'SEXE',sex:'EDAT',indicator:'x'});
+assert.deepEqual(ages.subgroups,['<25 Anys','De 35 A 44 Anys','>65 Anys','Sense dada de desglossament']);
+assert.deepEqual([...new Set(ages.groups.map(g=>g.profile))],['Dona','Home']);
+assert.equal(ages.breakdownBy,'EDAT');assert.equal(ages.breakdownLabel,'Edat');
+assert.equal(ages.breakdownMissing,1);assert.equal(ages.reference.n,5);
+assert.equal(group(ages,'Dona','<25 Anys').n,2);
+assert.equal(group(ages,'Dona','<25 Anys').counts['Sí'],1);
+assert.equal(ages.groups.reduce((n,g)=>n+g.total,0),6);
+const byAge=C.summarize(ageData,{groupBy:'EDAT',sex:'all',indicator:'x'});
+assert.equal(byAge.groupLabel,'Edat');assert.equal(byAge.groupingMissing,1);
+const ageCollection=C.summarizeCollection(ageData,{groupBy:'SEXE',sex:'EDAT'},[p,q],'1');
+assert.equal(ageCollection.breakdownBy,'EDAT');
+assert.deepEqual(group(ageCollection,'Dona','<25 Anys').cells[p],{n:2,count:1,missing:0});
+for(const orientation of ['rows','columns'])assert.ok(T.render(ages,{orientation,grouped:true,reference:true},v=>v).includes('Edat'));
+assert.throws(()=>C.summarize(data,{groupBy:'SEXE',sex:'EDAT',indicator:'x'}),/desglossament no disponible: EDAT/);
+assert.equal(C.summarize(ageData,{groupBy:'SEXE',sex:'EDAT',profiles:[],indicator:'x'}).valid,0);
+console.log('PASS: age/sex references, age breakdown order, independent bases, missing ages, collections and unavailable age column.');

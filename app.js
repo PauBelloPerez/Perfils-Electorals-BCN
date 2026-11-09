@@ -24,7 +24,7 @@ const option=(value,label)=>`<option value="${esc(value)}">${esc(label??value)}<
 const labelResponse=v=>isCollection()?(v==='1'?'Sí':v==='0'?'No':v):state.indicator.startsWith('MENCIO_TEMES_')?(v==='1'?'Sí, el menciona':v==='0'?'No el menciona':v):String(v).replaceAll('_',' ');
 function dimensions(){
   const sexes=C.sexesFor('compare');
-  $('sex').innerHTML=option('compare',sexes.join(' i '))+option('all','Total, sense desglossar')+sexes.map(s=>option(s,'Només '+s)).join('')+`<option value="PERFIL_POLITIC" ${data.headers.includes('PERFIL_POLITIC')?'':'disabled'}>Posicionament respecte al PSC${data.headers.includes('PERFIL_POLITIC')?'':' · no disponible'}</option>`;
+  $('sex').innerHTML=option('all','Total, sense desglossar')+option('compare',sexes.join(' i '))+sexes.map(s=>option(s,'Només '+s)).join('')+C.GROUPINGS.filter(g=>['PERFIL_POLITIC','EDAT'].includes(g.id)).map(g=>`<option value="${g.id}" ${data.headers.includes(g.id)?'':'disabled'}>${g.label}${data.headers.includes(g.id)?'':' · no disponible'}</option>`).join('');
   $('sex').value=state.sex;
   $('group-by').innerHTML=C.GROUPINGS.map(g=>`<option value="${g.id}" ${data.headers.includes(g.id)?'':'disabled'}>${esc(g.label)}${data.headers.includes(g.id)?'':' · no disponible'}</option>`).join('');
   $('group-by').value=state.groupBy;
@@ -55,7 +55,7 @@ function render(){
   result=collection?C.summarizeCollection(data,state,mentionIndicators(),response):C.summarize(data,state);
   $('analysis-title').textContent=result.groupLabel;
   $('grouping-note').hidden=false;
-  $('grouping-note').textContent=`Referència: ${result.groupLabel} (${result.groupBy}). ${num(result.groupingMissing)} registres seleccionats sense dada de referència, agrupats a «${result.missingGroupLabel}». Desglossament: ${result.breakdownLabel}.${result.breakdownBy==='PERFIL_POLITIC'?` ${num(result.breakdownMissing)} registres a «${result.breakdownMissingLabel}».`:''}`;
+  $('grouping-note').textContent=`Referència: ${result.groupLabel} (${result.groupBy}). ${num(result.groupingMissing)} registres seleccionats sense dada de referència, agrupats a «${result.missingGroupLabel}». Desglossament: ${result.breakdownLabel}.${['PERFIL_POLITIC','EDAT'].includes(result.breakdownBy)?` ${num(result.breakdownMissing)} registres a «${result.breakdownMissingLabel}».`:''}`;
   $('breadcrumb').textContent=item.group;
   $('indicator-title').textContent=item.label;
   $('description').textContent=item.description;
@@ -79,8 +79,8 @@ function render(){
 function renderChart(){
   $('response-title').textContent=labelResponse(response)||'Sense respostes per a aquesta selecció';
   const palette=['#16766d','#bb5b18','#5269b0','#945397','#79912d','#65879a'];
-  const politicalCategories=C.orderedResponses('PERFIL_POLITIC',new Set([...C.GROUPINGS.find(g=>g.id==='PERFIL_POLITIC').order,...result.subgroups]));
-  const color=s=>result.breakdownBy==='PERFIL_POLITIC'?(s===result.breakdownMissingLabel?'#7d8581':palette[politicalCategories.indexOf(s)%palette.length]):colors[s];
+  const breakdownCategories=C.orderedResponses(result.breakdownBy,new Set(data.rows.map(row=>row[data.headers.indexOf(result.breakdownBy)]).filter(v=>!C.missing(v))));
+  const color=s=>['PERFIL_POLITIC','EDAT'].includes(result.breakdownBy)?(s===result.breakdownMissingLabel?'#7d8581':palette[breakdownCategories.indexOf(s)%palette.length]):colors[s];
   $('legend').innerHTML=result.subgroups.map(s=>`<span><i style="background:${color(s)}"></i>${esc(s)}</span>`).join('');
   const ref=result.reference, value=ref.n?fmt((ref.counts[response]||0)/ref.n*100)+'%':'—';
   $('reference').innerHTML=`<div class="reference"><span>Conjunt seleccionat · ${esc(ref.subgroup)}</span><span><b>${value}</b> &nbsp; ${num(ref.counts[response]||0)} de ${num(ref.n)} respostes</span></div>`;

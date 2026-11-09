@@ -21,7 +21,7 @@ El servidor incluido escucha solo en `127.0.0.1` y sirve únicamente los archivo
 
 ## Uso
 
-El desplegable **Analitza per** elige la variable de referencia de gráficos, tablas y exportaciones: perfiles sociodemográficos (`ID2`, por defecto), distrito (`DISTRICTE`), ideología agrupada (`IDEO_3`), recuerdo de voto municipal (`MUNI_VOT`), intención de voto municipal (`INT_VOT`) o posicionamiento respecto al PSC (`PERFIL_POLITIC`). Las opciones ausentes del archivo aparecen desactivadas. También se pueden consultar las variables políticas como indicadores en el menú temático.
+El desplegable **Analitza per** elige la variable de referencia de gráficos, tablas y exportaciones: perfiles sociodemográficos (`ID2`, por defecto), distrito (`DISTRICTE`), edad (`EDAT`), sexo (`SEXE`), ideología agrupada (`IDEO_3`), recuerdo de voto municipal (`MUNI_VOT`), intención de voto municipal (`INT_VOT`) o posicionamiento respecto al PSC (`PERFIL_POLITIC`). Las opciones ausentes del archivo aparecen desactivadas. También se pueden consultar las variables políticas como indicadores en el menú temático.
 
 Al cambiar la referencia se seleccionan todas sus categorías y se conservan el indicador y el desglose por sexo. Los porcentajes se calculan dentro de cada categoría y sexo; el conjunto «Menció problema» conserva además la base propia de cada indicador. La exportación identifica la variable de referencia y su descripción. `Restableix` vuelve a `ID2`.
 
@@ -96,3 +96,5 @@ El importador valida columnas, descripciones coherentes, respuestas únicas y ó
 La descripción de `ACCEPTACIO_PROSTITUCIO` sigue pareciendo copiada de especulación inmobiliaria en el nuevo diccionario: la interfaz conserva el aviso sin corregir la fuente.
 
 Antes de usar la base completa, revisar equivalencia de preguntas, universos y posibles duplicidades entre encuestas, códigos de no-respuesta y las etiquetas provisionales. La prueba de capacidad con 45.000 filas repite la muestra y verifica el cálculo; no sustituye una prueba con la base completa ni mide toda la memoria del navegador.
+
+El desplegable **Desglossament** también ofrece **Edat** (`EDAT`), con los seis tramos del diccionario en su orden. Los casos sin edad forman «Sense dada de desglossament». Cada cruce conserva su propia base en gráficos, tablas, conjuntos y exportaciones.

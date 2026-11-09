@@ -8,6 +8,7 @@ const data={headers:fields,rows:[
  [null,'Dona','Two','2026',null,'No disponible',null,null,'No','1',null],
  ['B','Dona','One','2025','Dreta','PSC','PSC','Satisfets de dretes',null,'0','Eixample'],
 ]};
+data.headers.push('EDAT');data.rows.forEach((row,i)=>row.push(i%2?'>65 Anys':'<25 Anys'));
 const state={indicator:'x',groupBy:'IDEO_3',sex:'compare'};
 let r=C.summarize(data,state);
 assert.deepEqual([...new Set(r.groups.map(g=>g.profile))],['Esquerra','Dreta','No posicionats','Sense dada de referència']);
@@ -42,4 +43,4 @@ for(const grouping of C.GROUPINGS){
   assert.ok(html.includes(grouping.label));assert.ok(!html.includes('NaN')&&!html.includes('undefined'));
  }
 }
-console.log('PASS: all six reference variables, category/sex filters across all surveys, missing vs explicit political categories, collections and table captions.');
+console.log('PASS: all eight reference variables, category/sex filters across all surveys, missing vs explicit political categories, collections and table captions.');
