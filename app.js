@@ -1,7 +1,7 @@
 'use strict';
 const C=ProfileCore, $=id=>document.getElementById(id);
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const fmt=n=>new Intl.NumberFormat('ca-ES',{maximumFractionDigits:1,minimumFractionDigits:1}).format(n);
+const fmt=n=>new Intl.NumberFormat('ca-ES',{maximumFractionDigits:tableOptions.decimals,minimumFractionDigits:tableOptions.decimals}).format(n);
 const num=n=>new Intl.NumberFormat('ca-ES').format(n);
 const colors={Home:'#16766d',Dona:'#d78a56',Total:'#65879a'};
 const withDescription=item=>{
@@ -14,10 +14,11 @@ const mentionSet={id:'__MENCIO_PROBLEMA',label:'Menció problema · tots els pro
 const isCollection=()=>state.indicator===mentionSet.id;
 const mentionIndicators=()=>data.headers.filter(id=>id.startsWith('MENCIO_TEMES_'));
 const mentionLabel=id=>id.slice('MENCIO_TEMES_'.length).replaceAll('_',' ');
-const tableOptions={orientation:'columns',grouped:true,heat:true,counts:true,reference:true};
+const tableOptions={orientation:'columns',grouped:true,heat:true,counts:true,reference:true,decimals:1};
 try{
   const saved=JSON.parse(localStorage.getItem('perfils-table-options')||'{}');
   if(['columns','rows'].includes(saved.orientation))tableOptions.orientation=saved.orientation;
+  if([0,1,2].includes(saved.decimals))tableOptions.decimals=saved.decimals;
   for(const key of ['grouped','heat','counts','reference'])if(typeof saved[key]==='boolean')tableOptions[key]=saved[key];
 }catch{/* Preferences are optional when browser storage is unavailable. */}
 const option=(value,label)=>`<option value="${esc(value)}">${esc(label??value)}</option>`;
@@ -101,7 +102,7 @@ function exportSnapshot(){
     title:$('indicator-title').textContent+(isCollection()?' · '+labelResponse(response):''),
     description:$('description').textContent,
     context:`Referència: ${result.groupLabel}. Desglossament: ${result.breakdownLabel}. Selecció: ${category}. ${state.sex==='Home'||state.sex==='Dona'?'Només '+state.sex+'. ':''}Sense ponderar. NS/NC ${state.excludeNS?'exclosos':'inclosos'}. Tots els anys i enquestes. Font: ${data.source}.`,
-    fixedColumns:tableOptions.orientation==='columns'?(tableOptions.reference?2:1):(isCollection()?2:3)
+    fixedColumns:tableOptions.orientation==='columns'?(tableOptions.reference?2:1):(isCollection()?2:3),decimals:tableOptions.decimals
   });
 }
 function saveTable(){
@@ -142,13 +143,21 @@ function setView(next){view=isCollection()?'table':next;$('chart-view').hidden=v
 function exportCSV(){
   const lines=[['conjunt','indicador','descripcio','variable_referencia','referencia','enquesta','any','ponderacio','exclou_ns_nc','perfil','sexe','variable_desglossament','desglossament','subgrup','resposta','recompte','base','percentatge','excloses']];
   const series=isCollection()?result.series:[{id:state.indicator,result}];
-  for(const s of series)for(const g of [s.result.reference,...s.result.groups])for(const v of isCollection()?[response]:s.result.responses)lines.push([isCollection()?'Menció problema':'',s.id,catalog.find(i=>i.id===s.id)?.description||mentionLabel(s.id),result.groupBy,result.groupLabel,'Totes','Tots','Sense ponderar',state.excludeNS?'Sí':'No',g.profile,g.sex,result.breakdownBy,result.breakdownLabel,g.subgroup,isCollection()?labelResponse(v):v,g.counts[v]||0,g.n,g.n?((g.counts[v]||0)/g.n*100).toFixed(4).replace('.',','):'',g.missing]);
+  for(const s of series)for(const g of [s.result.reference,...s.result.groups])for(const v of isCollection()?[response]:s.result.responses)lines.push([isCollection()?'Menció problema':'',s.id,catalog.find(i=>i.id===s.id)?.description||mentionLabel(s.id),result.groupBy,result.groupLabel,'Totes','Tots','Sense ponderar',state.excludeNS?'Sí':'No',g.profile,g.sex,result.breakdownBy,result.breakdownLabel,g.subgroup,isCollection()?labelResponse(v):v,g.counts[v]||0,g.n,g.n?fmt((g.counts[v]||0)/g.n*100):'',g.missing]);
   const safe=v=>{v=String(v??'');if(/^[=+@\-\t\r]/.test(v))v="'"+v;return '"'+v.replaceAll('"','""')+'"';};
   const blob=new Blob(['\uFEFF'+lines.map(row=>row.map(safe).join(';')).join('\r\n')],{type:'text/csv;charset=utf-8'});
   const url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download=`perfils_${state.groupBy}_${result.breakdownBy||'TOTAL'}_${state.indicator}.csv`;link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
 function reset(){if(!data)return;state={indicator:data.headers.includes('PRIMER_PROBLEMA')?'PRIMER_PROBLEMA':catalog.find(v=>data.headers.includes(v.id)).id,groupBy:'ID2',sex:'compare',excludeNS:false,profiles:null};response='';$('search').value='';$('sex').value='compare';$('exclude-ns').checked=false;$('profile-details').open=false;dimensions();navigation();render();}
 $('search').oninput=navigation;
+$('percentage-decimals').value=String(tableOptions.decimals);
+$('percentage-decimals').onchange=()=>{
+  const decimals=Number($('percentage-decimals').value);
+  if(![0,1,2].includes(decimals))return;
+  tableOptions.decimals=decimals;
+  try{localStorage.setItem('perfils-table-options',JSON.stringify(tableOptions));}catch{}
+  if(data)render();
+};
 for(const key of ['orientation','grouped','heat','counts','reference']){
   const control=$('table-'+key);
   if(key==='orientation')control.value=tableOptions[key];else control.checked=tableOptions[key];

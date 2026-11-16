@@ -1,7 +1,7 @@
 (function(root){
   'use strict';
   const esc=v=>String(v??'').replace(/[\x00-\x08\x0b\x0c\x0e-\x1f]/g,'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[c]));
-  const note='• n < 30: base reduïda, lectura orientativa. — Sense base de resposta.';
+  const note='';
   function background(value){
     const m=/rgba?\(([^)]+)\)/.exec(value||'');
     if(!m)return 'FFFFFF';
@@ -21,7 +21,7 @@
         copy.querySelectorAll('i.low-dot').forEach(el=>el.replaceWith('• '));
         const header=!!cell.closest('thead'),label=cell.tagName==='TH';
         const bg=cell.style.backgroundColor?background(cell.style.backgroundColor):header?'EAF2EE':row.classList.contains('base-row')?'F7F9F8':'FFFFFF';
-        const item={r,c,text:copy.textContent.trim(),rs:cell.rowSpan||1,cs:cell.colSpan||1,bold:header||label,bg,align:cell.classList.contains('row-label')?'left':'center'};
+        const item={r,c,text:copy.textContent.trim(),rs:cell.rowSpan||1,cs:cell.colSpan||1,bold:header||label,bg,align:cell.classList.contains('row-label')?'left':'center',baseRow:row.classList.contains('base-row')};
         cells.push(item);
         for(let rr=r;rr<r+item.rs;rr++){occupied[rr]??=[];for(let cc=c;cc<c+item.cs;cc++)occupied[rr][cc]=true;}
         c+=item.cs;columns=Math.max(columns,c);
@@ -30,26 +30,60 @@
     return {...meta,cells,rows:rows.length,columns,headerRows:table.tHead?.rows.length||1,caption:table.caption?.textContent||'',note};
   }
   const cellStyle=cell=>`border:1px solid #d8e1de;padding:8px;vertical-align:middle;white-space:normal;overflow-wrap:anywhere;text-align:${cell.align};font-weight:${cell.bold?'600':'400'};background-color:#${cell.bg};color:#243e35;${/^[=+@\-]/.test(cell.text)?'mso-number-format:"\\@";':''}`;
-  function tableHTML(model){
-    let html='<table style="border-collapse:collapse;table-layout:fixed;width:100%;font:11px Arial,sans-serif">';
-    html+='<colgroup>'+Array.from({length:model.columns},(_,c)=>`<col style="width:${c===0?'180':'115'}px">`).join('')+'</colgroup><thead>';
+  function tableHTML(model,word=false){
+    let html=word?'<table width="100%" border="0" cellpadding="1" cellspacing="0" style="width:100%;border-collapse:collapse;table-layout:fixed;font:7.5pt Arial,sans-serif;mso-table-layout-alt:fixed;mso-cellspacing:0;mso-padding-alt:1pt 2pt 1pt 2pt">':'<table style="border-collapse:collapse;table-layout:fixed;width:100%;font:11px Arial,sans-serif">';
+    const widths=Array.from({length:model.columns},(_,c)=>model.columns===1?100:c===0?18:82/(model.columns-1));
+    html+='<colgroup>'+Array.from({length:model.columns},(_,c)=>word?`<col width="${widths[c]}%" style="width:${widths[c]}%">`:`<col style="width:${c===0?'180':'115'}px">`).join('')+'</colgroup><thead>';
     for(let r=0;r<model.rows;r++){
       if(r===model.headerRows)html+='</thead><tbody>';
       html+='<tr>'+model.cells.filter(c=>c.r===r).sort((a,b)=>a.c-b.c).map(cell=>{
         const tag=r<model.headerRows?'th':'td';
-        return `<${tag} rowspan="${cell.rs}" colspan="${cell.cs}" style="${esc(cellStyle(cell))}">${esc(cell.text).replaceAll('\n','<br>')}</${tag}>`;
+        const align='center';
+        const width=widths.slice(cell.c,cell.c+cell.cs).reduce((a,b)=>a+b,0);
+        const style=word?`width:${width}%;border-bottom:1px solid #d9dde1;padding:1pt 2pt;vertical-align:middle;word-break:normal;text-align:${align};font-weight:${cell.bold?'bold':'normal'};background-color:#${r<model.headerRows?'222933':cell.c===0?'F1F2F4':cell.bg};color:${r<model.headerRows?'#ffffff':'#202833'};${/^[=+@\-]/.test(cell.text)?'mso-number-format:"\\@";':''}`:cellStyle(cell);
+        const lines=cell.text.split('\n');
+        const contents=word?lines.map((line,i)=>{
+          const count=/^(\d+) respostes$/.exec(line.trim());
+          const excluded=/^(\d+) excloses$/.test(line.trim());
+          if(excluded)return '';
+          const base=/^n\s*=\s*(\d+)(?:\s*·.*)?$/i.exec(line.trim());
+          const value=count?`n&nbsp;=&nbsp;${count[1]}`:base?`n&nbsp;=&nbsp;${base[1]}`:esc(line);
+          return `<span style="font-family:Arial;font-size:${i?'6':'7.5'}pt;mso-ansi-font-size:${i?'6':'7.5'}pt;line-height:100%">${value}</span>`;
+        }).filter(Boolean).join('<br>'):esc(cell.text).replaceAll('\n','<br>');
+        const base=word&&cell.columnBase?`<br><span style="font-family:Arial;font-size:6pt;mso-ansi-font-size:6pt;font-weight:normal;color:#ffffff">${esc(cell.columnBase).replaceAll(' ','&nbsp;')}</span>`:'';
+        return `<${tag} rowspan="${cell.rs}" colspan="${cell.cs}" ${word?`width="${width}%"`:''} align="${esc(word?align:cell.align)}" valign="middle" style="${esc(style)}"><p align="${esc(word?align:cell.align)}" style="margin:0;mso-margin-top-alt:0;mso-margin-bottom-alt:0;line-height:100%;font:${word?'7.5':'9'}pt Arial,sans-serif;text-align:${esc(word?align:cell.align)}">${contents}${base}</p></${tag}>`;
       }).join('')+'</tr>';
     }
     return html+'</tbody></table>';
   }
+  // A column-layout table has one common denominator per group. Collections have
+  // independent bases in each cell, so they intentionally have no base row.
+  function compactBases(model){
+    const baseRow=model.cells.find(c=>c.baseRow)?.r;
+    if(baseRow===undefined||baseRow!==model.headerRows)return model;
+    const cells=model.cells.filter(c=>c.r!==baseRow).map(c=>({...c}));
+    for(const base of model.cells.filter(c=>c.baseRow&&c.c>0)){
+      const header=cells.find(c=>c.r<model.headerRows&&c.r+c.rs===model.headerRows&&c.c===base.c&&c.cs===1);
+      if(!header)return model;
+      const count=base.text.split('\n')[0].trim();
+      header.columnBase='n = '+count;
+    }
+    cells.forEach(c=>{if(c.r>baseRow)c.r--;});
+    return {...model,cells,rows:model.rows-1};
+  }
   function html(model){
-    return `<div style="font:12px Arial,sans-serif;color:#243e35"><h2>${esc(model.title)}</h2><p>${esc(model.description)}</p><p>${esc(model.context)}</p><p>${esc(model.caption)}</p>${tableHTML(model)}<p>${esc(model.note)}</p></div>`;
+    const parts=panels(compactBases(model),16);
+    return `<div style="font:8pt Arial,sans-serif;color:#202833"><table width="100%" style="width:100%;border-collapse:collapse"><tr><td bgcolor="#df2429" style="background:#df2429;color:#ffffff;padding:7px"><p style="margin:0;font:bold 13pt Arial;color:#ffffff">${esc(model.title)}</p><p style="margin:2px 0 0;font:8pt Arial;color:#ffffff">${esc(model.context)}</p></td></tr></table>${model.description&&model.description!==model.title?`<p style="margin:4px 0;font:8pt Arial">${esc(model.description)}</p>`:''}${parts.map((part,i)=>`${parts.length>1?`<p style="margin:4px 0;font:bold 8pt Arial">Bloc ${i+1} de ${parts.length}</p>`:''}${tableHTML(part,true)}<p style="margin:2px 0">&nbsp;</p>`).join('')}<p style="margin:3px 0;font:7pt Arial">${esc(model.caption)}</p><p style="margin:3px 0;font:7pt Arial">${esc(model.note)}</p></div>`;
   }
   function tsv(model){
-    const grid=Array.from({length:model.rows},()=>Array(model.columns).fill(''));
-    for(const cell of model.cells)grid[cell.r][cell.c]=cell.text.replaceAll('\n',' · ');
     const safe=value=>{let s=String(value);if(/^[=+@\-\t\r]/.test(s))s="'"+s;return s.replaceAll('\t',' ').replaceAll('\r',' ');};
-    return [safe(model.title),safe(model.context),...grid.map(row=>row.map(safe).join('\t')),safe(model.note)].join('\r\n');
+    const parts=panels(compactBases(model),16);
+    const tables=parts.flatMap((part,i)=>{
+      const grid=Array.from({length:part.rows},()=>Array(part.columns).fill(''));
+      for(const cell of part.cells)grid[cell.r][cell.c]=cell.text.split('\n').filter(line=>!/^\d+ excloses$/.test(line.trim())).map(line=>line.replace(/^(\d+) respostes$/,'n = $1').replace(/^(n\s*=\s*\d+)\s*·.*$/,'$1')).join(' · ')+(cell.columnBase?' · '+cell.columnBase:'');
+      return [...(parts.length>1?[`Bloc ${i+1} de ${parts.length}`]:[]),...grid.map(row=>row.map(safe).join('\t')),''];
+    });
+    return [safe(model.title),safe(model.context),...tables,safe(model.caption),safe(model.note)].join('\r\n');
   }
   // Split wide tables at group boundaries. Repeat row labels and the reference/base columns.
   function panels(model,maxColumns=8){
@@ -123,7 +157,7 @@
       }).join('');
       rows.push(`<row r="${r+1}" ht="${height}" customHeight="1">${body}</row>`);
     }
-    const styleXML=xml(`<styleSheet xmlns="${ns}"><numFmts count="1"><numFmt numFmtId="164" formatCode="0.0%"/></numFmts><fonts count="2"><font><sz val="11"/><color rgb="FF243E35"/><name val="Calibri"/></font><font><b/><sz val="11"/><color rgb="FF243E35"/><name val="Calibri"/></font></fonts><fills count="${fills.length+2}"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill>${fills.map(bg=>`<fill><patternFill patternType="solid"><fgColor rgb="FF${bg}"/><bgColor indexed="64"/></patternFill></fill>`).join('')}</fills><borders count="2"><border/><border>${['left','right','top','bottom'].map(side=>`<${side} style="thin"><color rgb="FFD8E1DE"/></${side}>`).join('')}</border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="${styles.length}">${styles.map(s=>`<xf numFmtId="${s.format}" fontId="${s.bold?1:0}" fillId="${s.fill}" borderId="${s.border}" xfId="0" applyAlignment="1" applyFill="1" applyFont="1" applyNumberFormat="1" applyBorder="1"><alignment horizontal="${s.align}" vertical="center" wrapText="1"/></xf>`).join('')}</cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>`);
+    const styleXML=xml(`<styleSheet xmlns="${ns}"><numFmts count="1"><numFmt numFmtId="164" formatCode="${[0,1,2].includes(model.decimals)?'0'+(model.decimals?'.'+'0'.repeat(model.decimals):'')+'%':'0.0%'}"/></numFmts><fonts count="2"><font><sz val="11"/><color rgb="FF243E35"/><name val="Calibri"/></font><font><b/><sz val="11"/><color rgb="FF243E35"/><name val="Calibri"/></font></fonts><fills count="${fills.length+2}"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill>${fills.map(bg=>`<fill><patternFill patternType="solid"><fgColor rgb="FF${bg}"/><bgColor indexed="64"/></patternFill></fill>`).join('')}</fills><borders count="2"><border/><border>${['left','right','top','bottom'].map(side=>`<${side} style="thin"><color rgb="FFD8E1DE"/></${side}>`).join('')}</border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="${styles.length}">${styles.map(s=>`<xf numFmtId="${s.format}" fontId="${s.bold?1:0}" fillId="${s.fill}" borderId="${s.border}" xfId="0" applyAlignment="1" applyFill="1" applyFont="1" applyNumberFormat="1" applyBorder="1"><alignment horizontal="${s.align}" vertical="center" wrapText="1"/></xf>`).join('')}</cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>`);
     const fixed=Math.min(model.fixedColumns||1,model.columns-1),frozen=shift+model.headerRows;
     const sheet=xml(`<worksheet xmlns="${ns}"><dimension ref="A1:${columnName(model.columns-1)}${model.rows+shift}"/><sheetViews><sheetView workbookViewId="0" showGridLines="0"><pane xSplit="${fixed}" ySplit="${frozen}" topLeftCell="${columnName(fixed)}${frozen+1}" activePane="bottomRight" state="frozen"/></sheetView></sheetViews><cols>${Array.from({length:model.columns},(_,i)=>`<col min="${i+1}" max="${i+1}" width="${i===0?34:22}" customWidth="1"/>`).join('')}</cols><sheetData>${rows.join('')}</sheetData>${merges.length?`<mergeCells count="${merges.length}">${merges.map(ref=>`<mergeCell ref="${ref}"/>`).join('')}</mergeCells>`:''}<pageMargins left="0.3" right="0.3" top="0.4" bottom="0.4" header="0.2" footer="0.2"/><pageSetup paperSize="9" orientation="landscape"/></worksheet>`);
     return zip({
@@ -168,6 +202,6 @@
     }catch{/* Denied rich writes must continue to the selection-based fallback. */}
     return copyWithSelection(markup,plain,env.document);
   }
-  const api={capture,html,tsv,panels,printHTML,xlsx,background,copyWithSelection,copyFormatted};
+  const api={capture,compactBases,html,tsv,panels,printHTML,xlsx,background,copyWithSelection,copyFormatted};
   if(typeof module!=='undefined')module.exports=api;else root.TableExport=api;
 })(typeof window!=='undefined'?window:globalThis);

@@ -1,8 +1,9 @@
 (function(root){
   'use strict';
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  const fmt=n=>new Intl.NumberFormat('ca-ES',{maximumFractionDigits:1,minimumFractionDigits:1}).format(n);
   function render(result,options,labelResponse){
+    const decimals=[0,1,2].includes(options.decimals)?options.decimals:1;
+    const fmt=n=>new Intl.NumberFormat('ca-ES',{maximumFractionDigits:decimals,minimumFractionDigits:decimals}).format(n);
     if(!result.valid)return '<div class="empty">No hi ha dades per a aquesta selecció.</div>';
     const groups=options.reference?[result.reference,...result.groups]:result.groups;
     const blocks=[];
