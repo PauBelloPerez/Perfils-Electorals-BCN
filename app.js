@@ -71,7 +71,7 @@ function render(){
   const collectionResponses=item.responses||['1','0'];
   if(collection&&!collectionResponses.includes(response))response=collectionResponses[0];
   result=collection?C.summarizeCollection(data,state,collectionIndicators(item),response):C.summarize(data,state);
-  if(collection){result.collectionLabel=item.exportLabel||'Menció problema';result.responseLabel=labelResponse(response);result.compactBases=item===usageSet;}
+  if(collection){result.collectionLabel=item.exportLabel||'Menció problema';result.responseLabel=labelResponse(response);}
   $('analysis-title').textContent=result.groupLabel;
   $('grouping-note').hidden=false;
   $('grouping-note').textContent=`Referència: ${result.groupLabel} (${result.groupBy}). ${num(result.groupingMissing)} registres seleccionats sense dada de referència, agrupats a «${result.missingGroupLabel}». Desglossament: ${result.breakdownLabel}.${['PERFIL_POLITIC','EDAT'].includes(result.breakdownBy)?` ${num(result.breakdownMissing)} registres a «${result.breakdownMissingLabel}».`:''}`;

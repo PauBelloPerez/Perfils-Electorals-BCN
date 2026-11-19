@@ -74,7 +74,7 @@ assert.ok(element('table').innerHTML.includes('100,00%'));
 element('export').onclick();assert.ok(exported.includes('"Menció problema"'));
 assert.ok(exported.includes('"100,00"'));
 element('sex').value='compare';element('sex').onchange();
-assert.ok(element('table').innerHTML.includes('>Dona</th>'));
+assert.ok(element('table').innerHTML.includes('>Dona<small class="header-base">'));
 vm.runInContext('reset()',context);assert.equal(element('sex').value,'compare');
 assert.equal(element('group-by').value,'ID2');
 // Old CSVs continue to work, with unavailable controls disabled.

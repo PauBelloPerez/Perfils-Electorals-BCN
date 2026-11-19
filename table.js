@@ -15,7 +15,7 @@
     });
     const base=g=>`${g.n>0&&g.n<30?'<i class="low-dot" aria-label="Base reduïda"></i>':''}${g.n}<small>${g.missing} excloses</small>`;
     const headerBase=g=>{
-      if(!result.compactBases)return '';
+      if(!result.collection)return '';
       const cells=Object.values(g.cells);
       const common=cells.every(c=>c.n===cells[0].n);
       return '<small class="header-base">'+(common?'n='+cells[0].n:'n variable')+'</small>';
@@ -23,7 +23,7 @@
     const cell=(g,v,headers)=>{
       const c=result.collection?g.cells[v]:{n:g.n,count:g.counts[v],missing:g.missing};
       const p=c.n?c.count/c.n:0;
-      return `<td headers="${headers}"${result.compactBases?` title="Base de ${c.n} respostes vàlides · ${c.missing} excloses"`:''}${options.heat&&c.n?` style="background-color:rgba(22,118,109,${p*.30})"`:''}>${result.collection&&c.n>0&&c.n<30?'<i class="low-dot" aria-label="Base reduïda"></i>':''}${c.n?fmt(p*100)+'%':'—'}${options.counts?`<small>${c.count} respostes</small>`:''}${result.collection&&!result.compactBases?`<small>n=${c.n} · ${c.missing} excloses</small>`:''}</td>`;
+      return `<td headers="${headers}"${result.collection?` title="Base de ${c.n} respostes vàlides · ${c.missing} excloses"`:''}${options.heat&&c.n?` style="background-color:rgba(22,118,109,${p*.30})"`:''}>${result.collection&&c.n>0&&c.n<30?'<i class="low-dot" aria-label="Base reduïda"></i>':''}${c.n?fmt(p*100)+'%':'—'}${options.counts?`<small>${c.count} respostes</small>`:''}</td>`;
     };
     let head,body;
     if(options.orientation==='columns'){

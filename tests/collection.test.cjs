@@ -23,7 +23,10 @@ assert.equal(C.summarizeCollection(fixture,state,['absent'],'1'),null);
 for(const orientation of ['columns','rows']){
  const html=T.render(yes,{orientation,grouped:true,heat:true,counts:false,reference:true},id=>id);
  assert.ok(html.includes('50,0%')&&html.includes('100,0%'));
- assert.ok(html.includes('n=1 · 1 excloses'));
+ assert.ok(html.includes('title="Base de 1 respostes vàlides · 1 excloses"'));
+ assert.ok(html.includes('<small class="header-base">n=3</small>'));
+ assert.ok(html.includes('<small class="header-base">n variable</small>'));
+ assert.ok(!html.includes('<small>n='));
  assert.ok(!html.includes('NaN')&&!html.includes('undefined'));
  assert.ok(!/<small>\d+ respostes<\/small>/.test(html));
  const ids=[...html.matchAll(/ id="([^"]+)"/g)].map(m=>m[1]);
