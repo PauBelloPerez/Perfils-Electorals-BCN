@@ -40,6 +40,8 @@
   const cellStyle=cell=>`border:1px solid #d8e1de;padding:8px;vertical-align:middle;white-space:normal;overflow-wrap:anywhere;text-align:${cell.align};font-weight:${cell.bold?'600':'400'};background-color:#${cell.bg};color:#243e35;${/^[=+@\-]/.test(cell.text)?'mso-number-format:"\\@";':''}`;
   function tableHTML(model,word=false,options={}){
     const font=options.compact?7.5:9,small=options.compact?6:7;
+    // Continue each upper category boundary through its subheaders and data.
+    const groupStarts=new Set(model.cells.filter(cell=>cell.r===0&&cell.c>0).map(cell=>cell.c));
     let html=word?`<table width="100%" border="0" cellpadding="1" cellspacing="0" style="width:100%;border-collapse:collapse;table-layout:auto;font:${font}pt Arial,sans-serif;mso-cellspacing:0;mso-padding-alt:1pt 2pt 1pt 2pt">`:'<table style="border-collapse:collapse;table-layout:fixed;width:100%;font:11px Arial,sans-serif">';
     const widths=Array.from({length:model.columns},(_,c)=>model.columns===1?100:c===0?18:82/(model.columns-1));
     html+='<colgroup>'+Array.from({length:model.columns},(_,c)=>word?`<col width="${widths[c]}%" style="width:${widths[c]}%">`:`<col style="width:${c===0?'180':'115'}px">`).join('')+'</colgroup><thead>';
@@ -50,7 +52,8 @@
         const align='center';
         const noWrap=word&&Boolean(cell.columnBase)&&!/[\s\n]/.test(cell.text)&&cell.text.length<=20;
         const width=widths.slice(cell.c,cell.c+cell.cs).reduce((a,b)=>a+b,0);
-        const style=word?`width:${width}%;border-bottom:1px solid #d9dde1;padding:${options.compact?'1pt 2pt':'2pt 3pt'};vertical-align:middle;word-break:normal;word-wrap:normal;overflow-wrap:normal;${noWrap?'white-space:nowrap;':''}text-align:${align};font-weight:${cell.bold?'bold':'normal'};background-color:#${r<model.headerRows?'222933':cell.c===0?'F1F2F4':cell.bg};color:${r<model.headerRows?'#ffffff':'#202833'};${/^[=+@\-]/.test(cell.text)?'mso-number-format:"\\@";':''}`:cellStyle(cell);
+        const separator=groupStarts.has(cell.c)?'border-left:0.5pt solid #aeb7c3;mso-border-left-alt:solid #aeb7c3 0.5pt;':'';
+        const style=word?`width:${width}%;border-bottom:1px solid #d9dde1;${separator}padding:${options.compact?'1pt 2pt':'2pt 3pt'};vertical-align:middle;word-break:normal;word-wrap:normal;overflow-wrap:normal;${noWrap?'white-space:nowrap;':''}text-align:${align};font-weight:${cell.bold?'bold':'normal'};background-color:#${r<model.headerRows?'222933':cell.c===0?'F1F2F4':cell.bg};color:${r<model.headerRows?'#ffffff':'#202833'};${/^[=+@\-]/.test(cell.text)?'mso-number-format:"\\@";':''}`:cellStyle(cell);
         const lines=cell.text.split('\n');
         const contents=word?lines.map((line,i)=>{
           const count=/^(\d+) respostes$/.exec(line.trim());
