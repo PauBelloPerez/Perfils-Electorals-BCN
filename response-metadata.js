@@ -3576,24 +3576,28 @@
           "order": 1
         },
         {
-          "value": "Indiferent / Ni Positiu Ni Negatiu",
+          "value": "Positivament",
           "order": 2
         },
         {
-          "value": "Negativament",
+          "value": "Indiferent / Ni Positiu Ni Negatiu",
           "order": 3
         },
         {
-          "value": "Molt Negativament",
+          "value": "Negativament",
           "order": 4
         },
         {
-          "value": "Ns/Nc",
+          "value": "Molt Negativament",
           "order": 5
         },
         {
-          "value": "NA",
+          "value": "Ns/Nc",
           "order": 6
+        },
+        {
+          "value": "NA",
+          "order": 7
         }
       ]
     },
@@ -5116,6 +5120,244 @@
         {
           "value": "NA",
           "order": 7
+        }
+      ]
+    },
+    "US_APARCA": {
+      "description": "Serveis municipals: Usuari de Aparcament",
+      "responses": [
+        {
+          "value": "Utilitza",
+          "order": 1
+        },
+        {
+          "value": "No utilitza",
+          "order": 2
+        },
+        {
+          "value": "NA",
+          "order": 3
+        }
+      ]
+    },
+    "US_BUS": {
+      "description": "Serveis municipals: Usuari de Autobús",
+      "responses": [
+        {
+          "value": "Utilitza",
+          "order": 1
+        },
+        {
+          "value": "No utilitza",
+          "order": 2
+        },
+        {
+          "value": "NA",
+          "order": 3
+        }
+      ]
+    },
+    "US_VERD": {
+      "description": "Serveis municipals: Usuari de Zones verdes (parcs i jardins)",
+      "responses": [
+        {
+          "value": "Utilitza",
+          "order": 1
+        },
+        {
+          "value": "No utilitza",
+          "order": 2
+        },
+        {
+          "value": "NA",
+          "order": 3
+        }
+      ]
+    },
+    "US_METRO": {
+      "description": "Serveis municipals: Usuari de Metro",
+      "responses": [
+        {
+          "value": "Utilitza",
+          "order": 1
+        },
+        {
+          "value": "No utilitza",
+          "order": 2
+        },
+        {
+          "value": "NA",
+          "order": 3
+        }
+      ]
+    },
+    "US_TRAM": {
+      "description": "Serveis municipals: Usuari de Tramvia",
+      "responses": [
+        {
+          "value": "Utilitza",
+          "order": 1
+        },
+        {
+          "value": "No utilitza",
+          "order": 2
+        },
+        {
+          "value": "NA",
+          "order": 3
+        }
+      ]
+    },
+    "US_BICING": {
+      "description": "Serveis municipals: Usuari de Bicing",
+      "responses": [
+        {
+          "value": "Utilitza",
+          "order": 1
+        },
+        {
+          "value": "No utilitza",
+          "order": 2
+        },
+        {
+          "value": "NA",
+          "order": 3
+        }
+      ]
+    },
+    "US_ESPORT": {
+      "description": "Serveis municipals: Usuari de Instal·lacions esportives",
+      "responses": [
+        {
+          "value": "Utilitza",
+          "order": 1
+        },
+        {
+          "value": "No utilitza",
+          "order": 2
+        },
+        {
+          "value": "NA",
+          "order": 3
+        }
+      ]
+    },
+    "US_CSS": {
+      "description": "Serveis municipals: Usuari de Serveis socials",
+      "responses": [
+        {
+          "value": "Utilitza",
+          "order": 1
+        },
+        {
+          "value": "No utilitza",
+          "order": 2
+        },
+        {
+          "value": "NA",
+          "order": 3
+        }
+      ]
+    },
+    "US_CULT": {
+      "description": "Serveis municipals: Usuari de Activitats culturals",
+      "responses": [
+        {
+          "value": "Utilitza",
+          "order": 1
+        },
+        {
+          "value": "No utilitza",
+          "order": 2
+        },
+        {
+          "value": "NA",
+          "order": 3
+        }
+      ]
+    },
+    "US_FESTESPOP": {
+      "description": "Serveis municipals: Usuari de Festes populars",
+      "responses": [
+        {
+          "value": "Utilitza",
+          "order": 1
+        },
+        {
+          "value": "No utilitza",
+          "order": 2
+        },
+        {
+          "value": "NA",
+          "order": 3
+        }
+      ]
+    },
+    "US_MERCAT": {
+      "description": "Serveis municipals: Usuari de Mercats municipals",
+      "responses": [
+        {
+          "value": "Utilitza",
+          "order": 1
+        },
+        {
+          "value": "No utilitza",
+          "order": 2
+        },
+        {
+          "value": "NA",
+          "order": 3
+        }
+      ]
+    },
+    "US_BIBLIO": {
+      "description": "Serveis municipals: Usuari de Biblioteques públiques",
+      "responses": [
+        {
+          "value": "Utilitza",
+          "order": 1
+        },
+        {
+          "value": "No utilitza",
+          "order": 2
+        },
+        {
+          "value": "NA",
+          "order": 3
+        }
+      ]
+    },
+    "US_CC": {
+      "description": "Serveis municipals: Usuari de Centres cívics",
+      "responses": [
+        {
+          "value": "Utilitza",
+          "order": 1
+        },
+        {
+          "value": "No utilitza",
+          "order": 2
+        },
+        {
+          "value": "NA",
+          "order": 3
+        }
+      ]
+    },
+    "US_SIAC": {
+      "description": "Serveis municipals: Usuari de Serveis d’informació i atenció ciutadana",
+      "responses": [
+        {
+          "value": "Utilitza",
+          "order": 1
+        },
+        {
+          "value": "No utilitza",
+          "order": 2
+        },
+        {
+          "value": "NA",
+          "order": 3
         }
       ]
     }

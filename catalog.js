@@ -1238,5 +1238,103 @@ window.INDICATORS = [
     "description": "Descripció pendent de completar.",
     "group": "Societat i demografia",
     "warning": "Variable sense descripció al diccionari. Etiqueta provisional a partir del codi."
+  },
+  {
+    "id": "US_APARCA",
+    "label": "Ús: Aparcament",
+    "description": "Serveis municipals: Usuari de Aparcament",
+    "group": "Serveis i espai públic",
+    "warning": ""
+  },
+  {
+    "id": "US_BUS",
+    "label": "Ús: Autobús",
+    "description": "Serveis municipals: Usuari de Autobús",
+    "group": "Serveis i espai públic",
+    "warning": ""
+  },
+  {
+    "id": "US_VERD",
+    "label": "Ús: Zones verdes (parcs i jardins)",
+    "description": "Serveis municipals: Usuari de Zones verdes (parcs i jardins)",
+    "group": "Serveis i espai públic",
+    "warning": ""
+  },
+  {
+    "id": "US_METRO",
+    "label": "Ús: Metro",
+    "description": "Serveis municipals: Usuari de Metro",
+    "group": "Serveis i espai públic",
+    "warning": ""
+  },
+  {
+    "id": "US_TRAM",
+    "label": "Ús: Tramvia",
+    "description": "Serveis municipals: Usuari de Tramvia",
+    "group": "Serveis i espai públic",
+    "warning": ""
+  },
+  {
+    "id": "US_BICING",
+    "label": "Ús: Bicing",
+    "description": "Serveis municipals: Usuari de Bicing",
+    "group": "Serveis i espai públic",
+    "warning": ""
+  },
+  {
+    "id": "US_ESPORT",
+    "label": "Ús: Instal·lacions esportives",
+    "description": "Serveis municipals: Usuari de Instal·lacions esportives",
+    "group": "Serveis i espai públic",
+    "warning": ""
+  },
+  {
+    "id": "US_CSS",
+    "label": "Ús: Serveis socials",
+    "description": "Serveis municipals: Usuari de Serveis socials",
+    "group": "Serveis i espai públic",
+    "warning": ""
+  },
+  {
+    "id": "US_CULT",
+    "label": "Ús: Activitats culturals",
+    "description": "Serveis municipals: Usuari de Activitats culturals",
+    "group": "Serveis i espai públic",
+    "warning": ""
+  },
+  {
+    "id": "US_FESTESPOP",
+    "label": "Ús: Festes populars",
+    "description": "Serveis municipals: Usuari de Festes populars",
+    "group": "Serveis i espai públic",
+    "warning": ""
+  },
+  {
+    "id": "US_MERCAT",
+    "label": "Ús: Mercats municipals",
+    "description": "Serveis municipals: Usuari de Mercats municipals",
+    "group": "Serveis i espai públic",
+    "warning": ""
+  },
+  {
+    "id": "US_BIBLIO",
+    "label": "Ús: Biblioteques públiques",
+    "description": "Serveis municipals: Usuari de Biblioteques públiques",
+    "group": "Serveis i espai públic",
+    "warning": ""
+  },
+  {
+    "id": "US_CC",
+    "label": "Ús: Centres cívics",
+    "description": "Serveis municipals: Usuari de Centres cívics",
+    "group": "Serveis i espai públic",
+    "warning": ""
+  },
+  {
+    "id": "US_SIAC",
+    "label": "Ús: Serveis d’informació i atenció ciutadana",
+    "description": "Serveis municipals: Usuari de Serveis d’informació i atenció ciutadana",
+    "group": "Serveis i espai públic",
+    "warning": ""
   }
 ];
