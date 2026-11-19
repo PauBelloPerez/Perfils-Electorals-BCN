@@ -110,6 +110,9 @@ vm.runInContext("state.sex='all';render()",context);
 assert.equal(vm.runInContext("result.reference.cells.US_APARCA.n",context),3);
 assert.equal(vm.runInContext("result.reference.cells.US_METRO.n",context),2);
 assert.equal(vm.runInContext("result.reference.cells.US_APARCA.count",context),2);
+assert.ok(element('table').innerHTML.includes('n variable'));
+assert.ok(element('table').innerHTML.includes('title="Base de 3 respostes vàlides · 0 excloses"'));
+assert.ok(!/<td\b[^>]*>[\s\S]*?<small>n=/.test(element('table').innerHTML));
 element('response').value='No utilitza';element('response').onchange();
 assert.equal(vm.runInContext("result.reference.cells.US_APARCA.count",context),1);
 assert.equal(vm.runInContext("result.reference.cells.US_METRO.count",context),1);
@@ -136,6 +139,7 @@ context.servicesFixture.rows=context.servicesFixture.rows.map(row=>row.slice(0,5
 vm.runInContext("adoptData(servicesFixture);state.indicator='__US_SERVEIS';response='';render()",context);
 assert.equal(vm.runInContext('result.series.length',context),1);
 assert.equal(element('response').value,'Utilitza');
+assert.ok(element('table').innerHTML.includes('<small class="header-base">n=3</small>'));
 console.log('PASS: service collection navigation, default response, service rows, per-service bases, response changes, filters, CSV and partial datasets.');
 
 (async()=>{

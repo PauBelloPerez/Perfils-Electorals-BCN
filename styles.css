@@ -46,3 +46,5 @@
 }
 
 #copy-preview{width:calc(100% - 36px);max-width:1180px;max-height:92vh;border:1px solid var(--line);border-radius:12px;padding:0;color:var(--ink);background:#edf1ef}#copy-preview::backdrop{background:#132c2980}#copy-table{user-select:text;-webkit-user-select:text}#copy-table ::selection{background:#b7d8f2;color:#132c29}
+
+.results-table .header-base{display:block;font-size:9px;font-weight:400;color:var(--muted)}
