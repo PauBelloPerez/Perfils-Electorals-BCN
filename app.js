@@ -11,9 +11,25 @@ const withDescription=item=>{
 let data=null, catalog=window.INDICATORS.map(withDescription), result, view='chart', response='', loadSequence=0;
 let state={indicator:'PRIMER_PROBLEMA',groupBy:'ID2',sex:'compare',excludeNS:false,profiles:null};
 const mentionSet={id:'__MENCIO_PROBLEMA',label:'Menció problema · tots els problemes',group:'Preocupacions ciutadanes',description:'Compara tots els problemes en una sola taula. Tria Sí o No per veure el percentatge de cada resposta, amb una base pròpia per indicador.'};
-const isCollection=()=>state.indicator===mentionSet.id;
+const usageSet={
+  id:'__US_SERVEIS',
+  label:'Ús de serveis municipals · tots els serveis',
+  group:'Serveis i espai públic',
+  description:'Compara l’ús dels serveis municipals, amb una base pròpia per servei.',
+  responses:['Utilitza','No utilitza'],
+  exportLabel:'Ús de serveis municipals',
+  indicators:[
+    'US_APARCA','US_BUS','US_VERD','US_METRO','US_TRAM','US_BICING','US_ESPORT',
+    'US_CSS','US_CULT','US_FESTESPOP','US_MERCAT','US_BIBLIO','US_CC','US_SIAC'
+  ]
+};
+const collectionSets=[mentionSet,usageSet];
+const activeCollection=()=>collectionSets.find(item=>item.id===state.indicator);
+const isCollection=()=>Boolean(activeCollection());
 const mentionIndicators=()=>data.headers.filter(id=>id.startsWith('MENCIO_TEMES_'));
 const mentionLabel=id=>id.slice('MENCIO_TEMES_'.length).replaceAll('_',' ');
+const collectionIndicators=item=>item===mentionSet?mentionIndicators():item.indicators.filter(id=>data.headers.includes(id));
+const collectionRowLabel=id=>activeCollection()===mentionSet?mentionLabel(id):(catalog.find(item=>item.id===id)?.label||id).replace(/^Ús:\s*/, '');
 const tableOptions={orientation:'columns',grouped:true,heat:true,counts:true,reference:true,decimals:1};
 try{
   const saved=JSON.parse(localStorage.getItem('perfils-table-options')||'{}');
@@ -22,7 +38,7 @@ try{
   for(const key of ['grouped','heat','counts','reference'])if(typeof saved[key]==='boolean')tableOptions[key]=saved[key];
 }catch{/* Preferences are optional when browser storage is unavailable. */}
 const option=(value,label)=>`<option value="${esc(value)}">${esc(label??value)}</option>`;
-const labelResponse=v=>isCollection()?(v==='1'?'Sí':v==='0'?'No':v):state.indicator.startsWith('MENCIO_TEMES_')?(v==='1'?'Sí, el menciona':v==='0'?'No el menciona':v):String(v).replaceAll('_',' ');
+const labelResponse=v=>state.indicator===mentionSet.id?(v==='1'?'Sí':v==='0'?'No':v):state.indicator.startsWith('MENCIO_TEMES_')?(v==='1'?'Sí, el menciona':v==='0'?'No el menciona':v):String(v).replaceAll('_',' ');
 function dimensions(){
   const sexes=C.sexesFor('compare');
   $('sex').innerHTML=option('all','Total, sense desglossar')+option('compare',sexes.join(' i '))+sexes.map(s=>option(s,'Només '+s)).join('')+C.GROUPINGS.filter(g=>['PERFIL_POLITIC','EDAT'].includes(g.id)).map(g=>`<option value="${g.id}" ${data.headers.includes(g.id)?'':'disabled'}>${g.label}${data.headers.includes(g.id)?'':' · no disponible'}</option>`).join('');
@@ -43,17 +59,19 @@ function referenceCategories(){
 function navigation(){
   const query=C.normalize($('search').value);
   const groups=new Map();
-  const entries=mentionIndicators().length?[mentionSet,...catalog]:catalog;
-  entries.filter(v=>(v.id===mentionSet.id||data.headers.includes(v.id))&&C.normalize(v.label+' '+v.description+' '+v.id+' '+v.group).includes(query)).forEach(v=>{if(!groups.has(v.group))groups.set(v.group,[]);groups.get(v.group).push(v);});
+  const entries=[...collectionSets.filter(item=>collectionIndicators(item).length),...catalog];
+  entries.filter(v=>(collectionSets.includes(v)||data.headers.includes(v.id))&&C.normalize(v.label+' '+v.description+' '+v.id+' '+v.group).includes(query)).forEach(v=>{if(!groups.has(v.group))groups.set(v.group,[]);groups.get(v.group).push(v);});
   $('catalog').innerHTML=[...groups].map(([group,vars])=>`<details ${query||vars.some(v=>v.id===state.indicator)?'open':''}><summary>${esc(group)}<span class="count">${vars.length}</span></summary>${vars.map(v=>`<button data-id="${esc(v.id)}" class="${v.id===state.indicator?'active':''}" ${v.id===state.indicator?'aria-current="true"':''}>${esc(v.label)}</button>`).join('')}</details>`).join('')||'<p class="empty">Cap indicador coincideix amb la cerca.</p>';
-  $('catalog').querySelectorAll('button').forEach(btn=>btn.onclick=()=>{state.indicator=btn.dataset.id;response='';navigation();render();});
+  $('catalog').querySelectorAll('button').forEach(btn=>btn.onclick=()=>{state.indicator=btn.dataset.id;response='';if(state.indicator===usageSet.id){tableOptions.orientation='columns';$('table-orientation').value='columns';}navigation();render();});
 }
 function render(){
   const collection=isCollection();
-  const item=collection?mentionSet:catalog.find(v=>v.id===state.indicator);
+  const item=collection?activeCollection():catalog.find(v=>v.id===state.indicator);
   if(!item)return;
-  if(collection&&!['1','0'].includes(response))response='1';
-  result=collection?C.summarizeCollection(data,state,mentionIndicators(),response):C.summarize(data,state);
+  const collectionResponses=item.responses||['1','0'];
+  if(collection&&!collectionResponses.includes(response))response=collectionResponses[0];
+  result=collection?C.summarizeCollection(data,state,collectionIndicators(item),response):C.summarize(data,state);
+  if(collection){result.collectionLabel=item.exportLabel||'Menció problema';result.responseLabel=labelResponse(response);}
   $('analysis-title').textContent=result.groupLabel;
   $('grouping-note').hidden=false;
   $('grouping-note').textContent=`Referència: ${result.groupLabel} (${result.groupBy}). ${num(result.groupingMissing)} registres seleccionats sense dada de referència, agrupats a «${result.missingGroupLabel}». Desglossament: ${result.breakdownLabel}.${['PERFIL_POLITIC','EDAT'].includes(result.breakdownBy)?` ${num(result.breakdownMissing)} registres a «${result.breakdownMissingLabel}».`:''}`;
@@ -69,7 +87,7 @@ function render(){
   $('valid-n').textContent=collection?range(result.validRange):num(result.valid);
   $('missing-n').textContent=collection?range(result.missingRange):num(result.missing);
   if(!collection&&!result.responses.includes(response))response=result.responses[0]??'';
-  const choices=collection?['1','0']:result.responses;
+  const choices=collection?collectionResponses:result.responses;
   $('response').innerHTML=choices.map(v=>option(v,labelResponse(v))).join('');
   $('response').value=response;$('response').disabled=!choices.length;
   $('source-badge').textContent=`${data.source} · ${num(data.rows.length)} registres`;
@@ -92,7 +110,7 @@ function renderChart(){
   }).join('')}</div></div>`).join(''):'<div class="empty">No hi ha respostes amb aquesta selecció.<br>Prova un altre indicador, grup de referència o desglossament.</div>';
 }
 function renderTable(){
-  $('table').innerHTML=ProfileTable.render(result,tableOptions,isCollection()?mentionLabel:labelResponse);
+  $('table').innerHTML=ProfileTable.render(result,tableOptions,isCollection()?collectionRowLabel:labelResponse);
   for(const id of ['export-xlsx','export-copy','export-pdf','export'])$(id).disabled=!result.valid;
   $('export-status').textContent='';
 }
@@ -143,7 +161,7 @@ function setView(next){view=isCollection()?'table':next;$('chart-view').hidden=v
 function exportCSV(){
   const lines=[['conjunt','indicador','descripcio','variable_referencia','referencia','enquesta','any','ponderacio','exclou_ns_nc','perfil','sexe','variable_desglossament','desglossament','subgrup','resposta','recompte','base','percentatge','excloses']];
   const series=isCollection()?result.series:[{id:state.indicator,result}];
-  for(const s of series)for(const g of [s.result.reference,...s.result.groups])for(const v of isCollection()?[response]:s.result.responses)lines.push([isCollection()?'Menció problema':'',s.id,catalog.find(i=>i.id===s.id)?.description||mentionLabel(s.id),result.groupBy,result.groupLabel,'Totes','Tots','Sense ponderar',state.excludeNS?'Sí':'No',g.profile,g.sex,result.breakdownBy,result.breakdownLabel,g.subgroup,isCollection()?labelResponse(v):v,g.counts[v]||0,g.n,g.n?fmt((g.counts[v]||0)/g.n*100):'',g.missing]);
+  for(const s of series)for(const g of [s.result.reference,...s.result.groups])for(const v of isCollection()?[response]:s.result.responses)lines.push([isCollection()?result.collectionLabel:'',s.id,catalog.find(i=>i.id===s.id)?.description||mentionLabel(s.id),result.groupBy,result.groupLabel,'Totes','Tots','Sense ponderar',state.excludeNS?'Sí':'No',g.profile,g.sex,result.breakdownBy,result.breakdownLabel,g.subgroup,isCollection()?labelResponse(v):v,g.counts[v]||0,g.n,g.n?fmt((g.counts[v]||0)/g.n*100):'',g.missing]);
   const safe=v=>{v=String(v??'');if(/^[=+@\-\t\r]/.test(v))v="'"+v;return '"'+v.replaceAll('"','""')+'"';};
   const blob=new Blob(['\uFEFF'+lines.map(row=>row.map(safe).join(';')).join('\r\n')],{type:'text/csv;charset=utf-8'});
   const url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download=`perfils_${state.groupBy}_${result.breakdownBy||'TOTAL'}_${state.indicator}.csv`;link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);

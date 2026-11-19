@@ -85,6 +85,59 @@ assert.ok(element('sex').innerHTML.includes('value="PERFIL_POLITIC" disabled'));
 assert.ok(element('group-by').innerHTML.includes('value="DISTRICTE" disabled'));
 console.log('PASS: district and PSC controls, charts, tables, collection exports, reset and CSVs lacking the new columns.');
 
+// Service usage uses the collection UI with independent valid bases per service.
+context.servicesFixture={source:'services.csv',headers:['ID2','SEXE','estudi','ANY','US_APARCA','US_METRO'],rows:[
+ ['A','Dona','Services','2026','Utilitza',null],
+ ['A','Dona','Services','2026','No utilitza','Utilitza'],
+ ['B','Home','Services','2026','Utilitza','No utilitza']
+]};
+vm.runInContext(`catalog.push({id:'US_APARCA',label:'Ús: Aparcament',group:'Serveis i espai públic'}, {id:'US_METRO',label:'Ús: Metro',group:'Serveis i espai públic'});adoptData(servicesFixture);`,context);
+assert.ok(element('catalog').innerHTML.includes('data-id="__US_SERVEIS"'));
+assert.ok(element('catalog').innerHTML.includes('data-id="US_APARCA"'));
+const usageButton={dataset:{id:'__US_SERVEIS'}};
+element('catalog').querySelectorAll=()=>[usageButton];
+vm.runInContext("tableOptions.orientation='rows';navigation()",context);
+usageButton.onclick();
+assert.equal(element('table-orientation').value,'columns');
+assert.equal(element('response').value,'Utilitza');
+assert.equal(element('response-control').hidden,false);
+assert.equal(element('chart-tab').disabled,true);
+assert.ok(element('table').innerHTML.includes('scope="row" class="row-label">Aparcament</th>'));
+assert.ok(element('table').innerHTML.includes('scope="row" class="row-label">Metro</th>'));
+assert.ok(element('table').innerHTML.includes('Resposta: Utilitza'));
+assert.ok(!element('table').innerHTML.includes('Menció problema'));
+vm.runInContext("state.sex='all';render()",context);
+assert.equal(vm.runInContext("result.reference.cells.US_APARCA.n",context),3);
+assert.equal(vm.runInContext("result.reference.cells.US_METRO.n",context),2);
+assert.equal(vm.runInContext("result.reference.cells.US_APARCA.count",context),2);
+element('response').value='No utilitza';element('response').onchange();
+assert.equal(vm.runInContext("result.reference.cells.US_APARCA.count",context),1);
+assert.equal(vm.runInContext("result.reference.cells.US_METRO.count",context),1);
+assert.ok(element('table').innerHTML.includes('Resposta: No utilitza'));
+element('export').onclick();
+assert.ok(exported.includes('"Ús de serveis municipals"'));
+assert.ok(exported.includes('"No utilitza"'));
+context.TableExport={capture:(_table,metadata)=>metadata};
+element('table').querySelector=()=>({});
+const usageExport=vm.runInContext('exportSnapshot()',context);
+assert.ok(usageExport.title.includes('Ús de serveis municipals'));
+assert.ok(usageExport.title.endsWith('No utilitza'));
+assert.equal(usageExport.fixedColumns,2);
+vm.runInContext("state.profiles=['A'];render()",context);
+assert.equal(vm.runInContext("result.reference.cells.US_APARCA.n",context),2);
+assert.equal(vm.runInContext("result.reference.cells.US_METRO.n",context),1);
+assert.equal(vm.runInContext("result.reference.cells.US_METRO.count",context),0);
+vm.runInContext("state.indicator='US_APARCA';response='';render()",context);
+assert.equal(element('response').value,'Utilitza');
+assert.equal(element('chart-tab').disabled,false);
+element('catalog').querySelectorAll=()=>[];
+context.servicesFixture.headers=context.servicesFixture.headers.slice(0,5);
+context.servicesFixture.rows=context.servicesFixture.rows.map(row=>row.slice(0,5));
+vm.runInContext("adoptData(servicesFixture);state.indicator='__US_SERVEIS';response='';render()",context);
+assert.equal(vm.runInContext('result.series.length',context),1);
+assert.equal(element('response').value,'Utilitza');
+console.log('PASS: service collection navigation, default response, service rows, per-service bases, response changes, filters, CSV and partial datasets.');
+
 (async()=>{
  let selected=false,opened=false;
  context.TableExport={capture:()=>({}),html:()=>'<table><tr><td>Habitatge</td></tr></table>',copyFormatted:async()=>false};
