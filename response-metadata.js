@@ -447,31 +447,35 @@
       ]
     },
     "PERFIL_POLITIC": {
-      "description": "Resum posiconament polític en les eleccions",
+      "description": "Resum posicionament polític en les eleccions",
       "responses": [
         {
-          "value": "Convençuts, simpatitzants o exvotants del partit",
+          "value": "Simpatitzants o exvotants decidament d'esquerres",
           "order": 1
         },
         {
-          "value": "Satisfets d'esquerres",
+          "value": "Simpatitzants o exvotants no decididament d'esquerres",
           "order": 2
         },
         {
-          "value": "Satisfets poc polititzats",
+          "value": "Satisfets d'esquerres",
           "order": 3
         },
         {
-          "value": "Satisfets de dretes",
+          "value": "Satisfets poc polititzats",
           "order": 4
         },
         {
-          "value": "No simpatitzants",
+          "value": "Satisfets de dretes",
           "order": 5
         },
         {
-          "value": "NA",
+          "value": "No simpatitzants",
           "order": 6
+        },
+        {
+          "value": "NA",
+          "order": 7
         }
       ]
     },
@@ -4752,6 +4756,366 @@
         {
           "value": "NA",
           "order": 11
+        }
+      ]
+    },
+    "ACORD_AUG_IBIHUT": {
+      "description": "Acord augmentar fins 150% l’IBI pisos turístics",
+      "responses": [
+        {
+          "value": "Molt d'acord",
+          "order": 1
+        },
+        {
+          "value": "Més Aviat d'acord",
+          "order": 2
+        },
+        {
+          "value": "En desacord",
+          "order": 3
+        },
+        {
+          "value": "NA",
+          "order": 4
+        }
+      ]
+    },
+    "ACORD_CAMERES": {
+      "description": "Acord instal·lar càmeres de videovigilància a l’espai públic",
+      "responses": [
+        {
+          "value": "Molt d'acord",
+          "order": 1
+        },
+        {
+          "value": "Més Aviat d'acord",
+          "order": 2
+        },
+        {
+          "value": "En desacord",
+          "order": 3
+        },
+        {
+          "value": "NA",
+          "order": 4
+        }
+      ]
+    },
+    "ACORD_CREAR_XARXACOMERC": {
+      "description": "Acord crear xarxa de comerços amb preus assequibles en zones de la ciutat sense teixit comercial fort",
+      "responses": [
+        {
+          "value": "Molt d'acord",
+          "order": 1
+        },
+        {
+          "value": "Més Aviat d'acord",
+          "order": 2
+        },
+        {
+          "value": "En desacord",
+          "order": 3
+        },
+        {
+          "value": "NA",
+          "order": 4
+        }
+      ]
+    },
+    "ACORD_BONUSCONSUM": {
+      "description": "Acord Bonus Consum",
+      "responses": [
+        {
+          "value": "Molt d'acord",
+          "order": 1
+        },
+        {
+          "value": "Més Aviat d'acord",
+          "order": 2
+        },
+        {
+          "value": "En desacord",
+          "order": 3
+        },
+        {
+          "value": "NA",
+          "order": 4
+        }
+      ]
+    },
+    "ACORD_COMPRAR_COMERCEMBLEM": {
+      "description": "Acord compra comerços emblemàtics en perill de desaparèixer",
+      "responses": [
+        {
+          "value": "Molt d'acord",
+          "order": 1
+        },
+        {
+          "value": "Més Aviat d'acord",
+          "order": 2
+        },
+        {
+          "value": "En desacord",
+          "order": 3
+        },
+        {
+          "value": "NA",
+          "order": 4
+        }
+      ]
+    },
+    "ACORD_PROHIBIR_BICISHARING": {
+      "description": "Acord prohibir bicisharing",
+      "responses": [
+        {
+          "value": "Molt d'acord",
+          "order": 1
+        },
+        {
+          "value": "Més Aviat d'acord",
+          "order": 2
+        },
+        {
+          "value": "En desacord",
+          "order": 3
+        },
+        {
+          "value": "NA",
+          "order": 4
+        }
+      ]
+    },
+    "PROB10A_BCN_SEQUERA_1A5": {
+      "description": "Probabilitat Barcelona pateixi sequeres",
+      "responses": [
+        {
+          "value": "Molt probable",
+          "order": 1
+        },
+        {
+          "value": "Bastant probable",
+          "order": 2
+        },
+        {
+          "value": "Poc o gens probable",
+          "order": 3
+        },
+        {
+          "value": "NA",
+          "order": 4
+        }
+      ]
+    },
+    "PROB10A_BCN_INUNDACIO_1A5": {
+      "description": "Probabilitat Barcelona pateixi DANA, ciclons, inundacions",
+      "responses": [
+        {
+          "value": "Molt probable",
+          "order": 1
+        },
+        {
+          "value": "Bastant probable",
+          "order": 2
+        },
+        {
+          "value": "Poc o gens probable",
+          "order": 3
+        },
+        {
+          "value": "NA",
+          "order": 4
+        }
+      ]
+    },
+    "PROB10A_BCN_CALOR_1A5": {
+      "description": "Probabilitat Barcelona pateixi onades de calor de més d’una setmana",
+      "responses": [
+        {
+          "value": "Molt probable",
+          "order": 1
+        },
+        {
+          "value": "Bastant probable",
+          "order": 2
+        },
+        {
+          "value": "Poc o gens probable",
+          "order": 3
+        },
+        {
+          "value": "NA",
+          "order": 4
+        }
+      ]
+    },
+    "PROB10A_BCN_NIVELLMAR_1A5": {
+      "description": "Probabilitat Barcelona pateixi pujada del nivell del mar",
+      "responses": [
+        {
+          "value": "Molt probable",
+          "order": 1
+        },
+        {
+          "value": "Bastant probable",
+          "order": 2
+        },
+        {
+          "value": "Poc o gens probable",
+          "order": 3
+        },
+        {
+          "value": "NA",
+          "order": 4
+        }
+      ]
+    },
+    "PROB10A_BCN_CONTAMINACIO_1A5": {
+      "description": "Probabilitat Barcelona pateixi contaminació de l’aire a nivells perjudicials per a la salut",
+      "responses": [
+        {
+          "value": "Molt probable",
+          "order": 1
+        },
+        {
+          "value": "Bastant probable",
+          "order": 2
+        },
+        {
+          "value": "Poc o gens probable",
+          "order": 3
+        },
+        {
+          "value": "NA",
+          "order": 4
+        }
+      ]
+    },
+    "ECOANSIETAT": {
+      "description": "Resum de com de vulnerable veuen Barcelona al canvi climàtic",
+      "responses": [
+        {
+          "value": "Majoria riscos alts",
+          "order": 1
+        },
+        {
+          "value": "Varis riscos alts",
+          "order": 2
+        },
+        {
+          "value": "Pocs riscos alts",
+          "order": 3
+        },
+        {
+          "value": "NA",
+          "order": 4
+        }
+      ]
+    },
+    "PROBLEMES_CIVISME": {
+      "description": "Victimització: ha tingut problemes de convivència",
+      "responses": [
+        {
+          "value": "No",
+          "order": 1
+        },
+        {
+          "value": "Sí",
+          "order": 2
+        },
+        {
+          "value": "NA",
+          "order": 3
+        }
+      ]
+    },
+    "pessimisme_economia_ciutat": {
+      "description": "Baròmetre: visió conjunta del futur i el passat de l’economia de la ciutat",
+      "responses": [
+        {
+          "value": "Ha Millorat I No Empitjorarà",
+          "order": 1
+        },
+        {
+          "value": "No Ha Millorat Però Millorarà",
+          "order": 2
+        },
+        {
+          "value": "Està Igual",
+          "order": 3
+        },
+        {
+          "value": "Ha Millorat Però Empitjorarà",
+          "order": 4
+        },
+        {
+          "value": "No Ha Millorat I No Millorarà",
+          "order": 5
+        },
+        {
+          "value": "NA",
+          "order": 6
+        }
+      ]
+    },
+    "pessimisme_economia_llar": {
+      "description": "Baròmetre: visió conjunta del futur i el passat de l’economia de la llar",
+      "responses": [
+        {
+          "value": "Ha Millorat I No Empitjorarà",
+          "order": 1
+        },
+        {
+          "value": "No Ha Millorat Però Millorarà",
+          "order": 2
+        },
+        {
+          "value": "Està Igual",
+          "order": 3
+        },
+        {
+          "value": "Ha Millorat Però Empitjorarà",
+          "order": 4
+        },
+        {
+          "value": "No Ha Millorat I No Millorarà",
+          "order": 5
+        },
+        {
+          "value": "NA",
+          "order": 6
+        }
+      ]
+    },
+    "pessimisme_ciutat": {
+      "description": "Visió conjunta del futur i el passat de la ciutat",
+      "responses": [
+        {
+          "value": "Ha millorat i no empitjorarà",
+          "order": 1
+        },
+        {
+          "value": "No ha millorat però ho farà",
+          "order": 2
+        },
+        {
+          "value": "No veu cap canvi",
+          "order": 3
+        },
+        {
+          "value": "Ha millorat però empitjorarà",
+          "order": 4
+        },
+        {
+          "value": "No ha millorat ni ho farà",
+          "order": 5
+        },
+        {
+          "value": "Està igual o ha empitjorat i empitjorarà",
+          "order": 6
+        },
+        {
+          "value": "NA",
+          "order": 7
         }
       ]
     }
