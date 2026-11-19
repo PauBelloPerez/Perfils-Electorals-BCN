@@ -111,7 +111,7 @@ function renderChart(){
 }
 function renderTable(){
   $('table').innerHTML=ProfileTable.render(result,tableOptions,isCollection()?collectionRowLabel:labelResponse);
-  for(const id of ['export-xlsx','export-copy','export-pdf','export'])$(id).disabled=!result.valid;
+  for(const id of ['export-xlsx','export-copy','export-image','export-pdf','export'])$(id).disabled=!result.valid;
   $('export-status').textContent='';
 }
 function exportSnapshot(){
@@ -130,13 +130,34 @@ function saveTable(){
     $('export-status').textContent='Excel preparat amb el format de la taula.';
   }catch(error){$('export-status').textContent=error.message;}
 }
+const reportOptions=()=>({compact:$('export-density').value==='compact',split:$('export-blocks').checked});
+async function copyImage(){
+  $('export-image').disabled=true;
+  try{
+    const pending=TableImage.png(exportSnapshot(),reportOptions());
+    // Observe a rejection even if ClipboardItem construction fails first.
+    pending.catch(()=>{});
+    if(navigator.clipboard?.write&&window.ClipboardItem){
+      try{
+        await navigator.clipboard.write([new ClipboardItem({'image/png':pending})]);
+        $('export-status').textContent='Imatge copiada. Enganxa-la a Word i ajusta’n la mida.';
+        return;
+      }catch{/* Download the same PNG when image clipboard writes are unavailable. */}
+    }
+    const blob=await pending,url=URL.createObjectURL(blob),link=document.createElement('a');
+    link.href=url;link.download=`taula_${state.indicator}.png`;link.click();
+    setTimeout(()=>URL.revokeObjectURL(url),1000);
+    $('export-status').textContent='S’ha descarregat la imatge PNG perquè el navegador no ha permès copiar-la. Insereix-la al document.';
+  }catch(error){$('export-status').textContent=error.message||'No s’ha pogut preparar la imatge.';}
+  finally{$('export-image').disabled=!result?.valid;}
+}
 async function copyTable(){
   $('export-copy').disabled=true;
   try{
-    const snapshot=exportSnapshot();
-    if(await TableExport.copyFormatted(snapshot)){
+    const snapshot=exportSnapshot(),options=reportOptions();
+    if(await TableExport.copyFormatted(snapshot,window,options)){
       $('export-status').textContent='Taula copiada amb format. Enganxa-la a Excel, Word o un document.';
-    }else manualCopy(snapshot);
+    }else manualCopy(snapshot,options);
   }catch(error){$('export-status').textContent=error.message||'No s’ha pogut preparar la taula.';}
   finally{$('export-copy').disabled=!result?.valid;}
 }
@@ -146,15 +167,15 @@ function selectCopyTable(){
   const selection=window.getSelection();selection.removeAllRanges();selection.addRange(range);
   $('copy-status').textContent='Taula seleccionada. Prem Ctrl+C (o ⌘C al Mac) i enganxa-la al document de destinació.';
 }
-function manualCopy(snapshot){
+function manualCopy(snapshot,options=reportOptions()){
   try{
-    $('copy-table').innerHTML=TableExport.html(snapshot||exportSnapshot());
+    $('copy-table').innerHTML=TableExport.html(snapshot||exportSnapshot(),options);
     $('copy-preview').showModal();selectCopyTable();
     $('export-status').textContent='Pots copiar la taula seleccionada amb Ctrl+C sense activar permisos.';
   }catch(error){$('export-status').textContent=error.message;}
 }
 function previewTable(){
-  try{$('export-pages').innerHTML=TableExport.printHTML(exportSnapshot());$('export-preview').showModal();}
+  try{$('export-pages').innerHTML=TableExport.printHTML(exportSnapshot(),reportOptions());$('export-preview').showModal();}
   catch(error){$('export-status').textContent=error.message;}
 }
 function setView(next){view=isCollection()?'table':next;$('chart-view').hidden=view!=='chart';$('table-view').hidden=view!=='table';$('response-control').hidden=view!=='chart'&&!isCollection();$('chart-tab').disabled=isCollection();$('chart-tab').title=isCollection()?'La vista conjunta es presenta en taula':'';$('chart-tab').setAttribute('aria-pressed',view==='chart');$('table-tab').setAttribute('aria-pressed',view==='table');}
@@ -191,6 +212,7 @@ $('exclude-ns').onchange=()=>{state.excludeNS=$('exclude-ns').checked;render();}
 $('response').onchange=()=>{response=$('response').value;if(isCollection())render();else renderChart();};
 $('chart-tab').onclick=()=>setView('chart');$('table-tab').onclick=()=>setView('table');$('export').onclick=exportCSV;$('reset').onclick=reset;
 $('export-xlsx').onclick=saveTable;$('export-copy').onclick=copyTable;$('export-pdf').onclick=previewTable;
+$('export-image').onclick=copyImage;
 $('copy-select').onclick=selectCopyTable;
 $('copy-close').onclick=()=>{$('copy-preview').close();window.getSelection()?.removeAllRanges();};
 $('export-print').onclick=()=>window.print();$('export-close').onclick=()=>$('export-preview').close();

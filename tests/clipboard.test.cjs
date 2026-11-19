@@ -25,5 +25,11 @@ function environment({modern='reject',legacy=true,throwLegacy=false,event=true}=
  const noAPI=environment({modern:'absent'});delete noAPI.env.document.execCommand;
  assert.equal(await E.copyFormatted(model,noAPI.env),false);
  assert.equal(await E.copyFormatted(model,{}),false);
+ const compact=environment({modern:'ok'});
+ assert.equal(await E.copyFormatted(model,compact.env,{compact:true}),true);
+ assert.ok(compact.writes[0][0].data['text/html'].parts[0].includes('font-size:7.5pt'));
+ const normal=environment({modern:'ok'});
+ await E.copyFormatted(model,normal.env);
+ assert.ok(normal.writes[0][0].data['text/html'].parts[0].includes('font-size:9pt'));
  console.log('PASS: rich clipboard success, denied/absent API fallback, failed commands request manual copy, focus/selection restored and temporary content removed.');
 })().catch(error=>{console.error(error);process.exitCode=1;});

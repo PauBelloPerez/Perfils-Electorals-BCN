@@ -39,12 +39,25 @@ En **Preocupacions ciutadanes → Menció problema · tots els problemes**, una 
 
 ## Exportar la tabla con formato
 
-En **Exporta taula** hay cuatro opciones. Todas usan la selección actual:
+En **Exporta taula** puedes elegir **Normal** o **Compacte** para copiar una tabla editable, una imagen o imprimir un informe. Compacte reduce la letra y el espacio entre celdas. Las bases permanecen visibles. Para ocultar los recuentos por celda, desmarca **Mostra recomptes** en **Personalitza la taula**.
 
-- **Excel amb format (.xlsx)** genera un libro con la disposición visible, encabezados combinados, colores, bases y recuentos según las opciones activadas. Los porcentajes sin texto adicional se guardan como valores numéricos; las celdas con recuentos o bases en varias líneas conservan ese texto tal como aparece en pantalla. Los encabezados quedan inmovilizados. No necesita Excel instalado ni conexión externa.
-- **Copia la taula amb format** copia HTML y texto tabulado para pegar en Excel, Word o documentos compatibles. El formato final depende de la aplicación de destino. Intenta primero la API de portapapeles y, si no está disponible o rechaza la escritura, la copia de una selección con formato. Si ambas fallan, abre la tabla seleccionada para copiar con Ctrl+C (⌘C en Mac), sin pedir cambios de permisos. La alternativa manual solo aparece si fallan los dos intentos automáticos; no ocupa una opción adicional en el menú. No muestra un mensaje de éxito cuando la copia automática falla.
-- **Imprimeix / Desa com a PDF** abre una vista previa. El botón de impresión permite elegir «Guardar como PDF» en el navegador. Usa A4 horizontal, divide las tablas anchas por bloques y repite las etiquetas y columnas de referencia o base para mantenerlas legibles. Los encabezados se repiten en los saltos verticales. Incluye título, selección, criterio y leyenda de bases pequeñas.
-- **Dades en CSV** conserva la descarga de datos detallados para otros análisis.
+La copia y la impresión mantienen todas las columnas en una sola tabla por defecto. **Divideix en blocs** es opcional y repite las etiquetas y columnas fijas en cada bloque. Las tablas altas pueden continuar en otras páginas; el formato de impresión es A4 vertical, con encabezados repetidos.
+
+- **Excel amb format (.xlsx)** conserva la disposición visible, encabezados combinados, colores, bases y recuentos. No utiliza los ajustes de informe.
+- **Copia la taula editable (Word)** copia una tabla HTML con ancho del 100% y texto tabulado. Título, descripción y notas son párrafos separados. Las columnas se autoajustan en Word; los encabezados cortos (Home, Dona, Total) y la base se protegen frente a saltos internos. La categoría y su base ocupan párrafos separados. Con muchas columnas, utiliza Compacte o Divideix en blocs para conservar la legibilidad. Primero intenta copiar con formato; si falla, utiliza una selección y, finalmente, ofrece copia manual con Ctrl+C. El resultado del pegado depende de Word y de la opción de pegado utilizada.
+- **Copia com a imatge** genera un PNG con todas las celdas, combinaciones, colores y bases. Permite redimensionar el conjunto proporcionalmente en Word; las celdas de la imagen no se pueden editar. Si el navegador no permite copiar imágenes, descarga el mismo PNG para insertarlo en el documento. La imagen se genera localmente, sin servicios externos.
+- **Imprimeix / Desa com a PDF** abre la vista previa con los mismos ajustes de informe. En el diálogo de impresión puedes guardar un PDF o cambiar la orientación de página.
+- **Dades en CSV** conserva los datos detallados para otros análisis.
+
+### Cambiar el límite de columnas
+
+Al principio de **table-export.js** encontrarás:
+
+```js
+const MAX_COLUMNS_PER_BLOCK = 12;
+```
+
+Prueba, por ejemplo, **8**, **10**, **12** o **16**, guarda y recarga la web. Activa **Divideix en blocs** para ver el efecto al copiar, generar una imagen o imprimir. El número incluye las columnas fijas que se repiten (etiquetas, total o bases). Los grupos se mantienen juntos cuando caben, así que algunos bloques pueden tener menos columnas que el límite. El valor debe superar el número de columnas fijas para poder incluir datos. **0** desactiva la división incluso si está marcada. Sin marcar la opción, siempre se exporta una única tabla.
 
 Se exporta la tabla completa, incluidas las filas y columnas fuera del área desplazable; desde la vista de gráfico se utiliza la tabla correspondiente. Los porcentajes no se recalculan al exportar. Sin respuestas válidas, las acciones se desactivan.
 
