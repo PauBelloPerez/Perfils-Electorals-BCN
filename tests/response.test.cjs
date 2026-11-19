@@ -120,7 +120,7 @@ assert.ok(exported.includes('"No utilitza"'));
 context.TableExport={capture:(_table,metadata)=>metadata};
 element('table').querySelector=()=>({});
 const usageExport=vm.runInContext('exportSnapshot()',context);
-assert.ok(usageExport.title.includes('Ús de serveis municipals'));
+assert.ok(usageExport.title.includes('Ús: Tots els serveis'));
 assert.ok(usageExport.title.endsWith('No utilitza'));
 assert.equal(usageExport.fixedColumns,2);
 vm.runInContext("state.profiles=['A'];render()",context);

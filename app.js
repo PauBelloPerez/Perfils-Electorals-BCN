@@ -13,7 +13,7 @@ let state={indicator:'PRIMER_PROBLEMA',groupBy:'ID2',sex:'compare',excludeNS:fal
 const mentionSet={id:'__MENCIO_PROBLEMA',label:'Menció problema · tots els problemes',group:'Preocupacions ciutadanes',description:'Compara tots els problemes en una sola taula. Tria Sí o No per veure el percentatge de cada resposta, amb una base pròpia per indicador.'};
 const usageSet={
   id:'__US_SERVEIS',
-  label:'Ús de serveis municipals · tots els serveis',
+  label:'Ús: Tots els serveis',
   group:'Serveis i espai públic',
   description:'Compara l’ús dels serveis municipals, amb una base pròpia per servei.',
   responses:['Utilitza','No utilitza'],
