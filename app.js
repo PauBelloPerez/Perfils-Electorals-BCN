@@ -23,13 +23,38 @@ const usageSet={
     'US_CSS','US_CULT','US_FESTESPOP','US_MERCAT','US_BIBLIO','US_CC','US_SIAC'
   ]
 };
-const collectionSets=[mentionSet,usageSet];
+const managementSet={
+  id:'__GESTIO_AMBITS',
+  label:'Valoració de la gestió: tots els àmbits',
+  group:'Gestió municipal',
+  description:'Compara la valoració de l’actuació de l’Ajuntament en cada àmbit. Tria la resposta que vols mostrar, amb una base pròpia per àmbit.',
+  responses:['Fan Molt','Fan Ni Molt Ni Poc','No Fan Res'],
+  exportLabel:'Valoració de la gestió per àmbits',
+  indicators:[
+    'cat_gestio_aju_circulacio','cat_gestio_aju_espaipublic','cat_gestio_aju_incivisme',
+    'cat_gestio_aju_transportpublic','cat_gestio_aju_seguretat','cat_gestio_aju_pobresa',
+    'cat_gestio_aju_habitatge','cat_gestio_aju_immigracio','cat_gestio_aju_clima','cat_gestio_aju_turisme'
+  ],
+  rowLabels:{
+    cat_gestio_aju_circulacio:'Circulació',
+    cat_gestio_aju_espaipublic:'Manteniment de l’espai públic',
+    cat_gestio_aju_incivisme:'Civisme',
+    cat_gestio_aju_transportpublic:'Transport públic',
+    cat_gestio_aju_seguretat:'Seguretat',
+    cat_gestio_aju_pobresa:'Lluita contra la pobresa',
+    cat_gestio_aju_habitatge:'Accés a l’habitatge',
+    cat_gestio_aju_immigracio:'Immigració',
+    cat_gestio_aju_clima:'Canvi climàtic',
+    cat_gestio_aju_turisme:'Gestió del turisme'
+  }
+};
+const collectionSets=[mentionSet,usageSet,managementSet];
 const activeCollection=()=>collectionSets.find(item=>item.id===state.indicator);
 const isCollection=()=>Boolean(activeCollection());
 const mentionIndicators=()=>data.headers.filter(id=>id.startsWith('MENCIO_TEMES_'));
 const mentionLabel=id=>id.slice('MENCIO_TEMES_'.length).replaceAll('_',' ');
 const collectionIndicators=item=>item===mentionSet?mentionIndicators():item.indicators.filter(id=>data.headers.includes(id));
-const collectionRowLabel=id=>activeCollection()===mentionSet?mentionLabel(id):(catalog.find(item=>item.id===id)?.label||id).replace(/^Ús:\s*/, '');
+const collectionRowLabel=id=>activeCollection()?.rowLabels?.[id]||(activeCollection()===mentionSet?mentionLabel(id):(catalog.find(item=>item.id===id)?.label||id).replace(/^Ús:\s*/, ''));
 const tableOptions={orientation:'columns',grouped:true,heat:true,counts:true,reference:true,decimals:1};
 try{
   const saved=JSON.parse(localStorage.getItem('perfils-table-options')||'{}');
@@ -62,7 +87,7 @@ function navigation(){
   const entries=[...collectionSets.filter(item=>collectionIndicators(item).length),...catalog];
   entries.filter(v=>(collectionSets.includes(v)||data.headers.includes(v.id))&&C.normalize(v.label+' '+v.description+' '+v.id+' '+v.group).includes(query)).forEach(v=>{if(!groups.has(v.group))groups.set(v.group,[]);groups.get(v.group).push(v);});
   $('catalog').innerHTML=[...groups].map(([group,vars])=>`<details ${query||vars.some(v=>v.id===state.indicator)?'open':''}><summary>${esc(group)}<span class="count">${vars.length}</span></summary>${vars.map(v=>`<button data-id="${esc(v.id)}" class="${v.id===state.indicator?'active':''}" ${v.id===state.indicator?'aria-current="true"':''}>${esc(v.label)}</button>`).join('')}</details>`).join('')||'<p class="empty">Cap indicador coincideix amb la cerca.</p>';
-  $('catalog').querySelectorAll('button').forEach(btn=>btn.onclick=()=>{state.indicator=btn.dataset.id;response='';if(state.indicator===usageSet.id){tableOptions.orientation='columns';$('table-orientation').value='columns';}navigation();render();});
+  $('catalog').querySelectorAll('button').forEach(btn=>btn.onclick=()=>{state.indicator=btn.dataset.id;response='';if([usageSet.id,managementSet.id].includes(state.indicator)){tableOptions.orientation='columns';$('table-orientation').value='columns';}navigation();render();});
 }
 function render(){
   const collection=isCollection();
