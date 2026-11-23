@@ -25,6 +25,20 @@ context.fixture={source:'test.csv',headers:['ID2','SEXE','estudi','ANY','PRIMER_
  ['B','Home','Test','2025','Habitatge','1','Eixample',null]
 ]};
 vm.runInContext('adoptData(fixture)',context);
+element('multi-panel').open=true;
+for(const id of ['PRIMER_PROBLEMA','PERFIL_POLITIC']){
+  element('multi-options').onchange({target:{value:id,checked:true}});
+}
+const combined=element('multi-table').innerHTML;
+assert.equal((combined.match(/<th>Base \(n\)<\/th>/g)||[]).length,2);
+assert.ok(combined.includes('<th>Base (n)</th><td>3</td>'));
+assert.ok(combined.includes('<th>Base (n)</th><td>2</td>'));
+assert.ok(combined.includes('33,3%'));
+for(const id of ['PRIMER_PROBLEMA','PERFIL_POLITIC']){
+  element('multi-options').onchange({target:{value:id,checked:false}});
+}
+assert.equal(element('multi-export').disabled,true);
+element('multi-panel').open=false;
 assert.equal(element('response-title').textContent,'Habitatge');
 assert.ok(element('response').innerHTML.indexOf('Habitatge')<element('response').innerHTML.indexOf('Inseguretat'));
 assert.equal(element('description').textContent,require('../response-metadata.js').variables.PRIMER_PROBLEMA.description);

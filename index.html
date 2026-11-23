@@ -29,6 +29,13 @@
     </section>
     <p id="grouping-note" class="grouping-note" hidden></p>
     <div id="message" class="message" role="status" hidden></div>
+    <details id="multi-panel" class="table-settings" hidden>
+      <summary>Taula de diversos indicadors</summary>
+      <label>Cerca indicadors <input type="search" id="multi-search" placeholder="Nom, tema o variable"></label>
+      <div id="multi-options" class="multi-options"></div>
+      <div class="chart-toolbar"><span id="multi-count" role="status"></span><button id="multi-export" class="button secondary" disabled>Exporta la taula a Excel</button></div>
+      <div id="multi-table" class="table-scroll" tabindex="0" aria-label="Taula de diversos indicadors"></div>
+    </details>
     <section class="workspace" aria-labelledby="indicator-title" hidden>
       <div class="panel-heading"><div><div id="breadcrumb" class="eyebrow"></div><h2 id="indicator-title"></h2><p id="description"></p></div><details class="export-menu"><summary class="button secondary">↓ Exporta taula</summary><div class="export-options"><button id="export-xlsx">Excel amb format (.xlsx)</button><div class="report-settings"><label>Format per a informes<select id="export-density"><option value="normal">Normal</option><option value="compact">Compacte</option></select></label><label class="check"><input id="export-blocks" type="checkbox"> Divideix en blocs</label><p>Sense marcar: una única taula. Les bases es conserven; pots ocultar els recomptes a «Personalitza la taula».</p></div><button id="export-copy">Copia la taula editable (Word)</button><button id="export-image">Copia com a imatge</button><button id="export-pdf">Imprimeix / Desa com a PDF</button><button id="export">Dades en CSV</button><p id="export-status" role="status" aria-live="polite"></p></div></details></div>
       <div id="variable-warning" class="notice" hidden></div>
@@ -53,5 +60,5 @@
 </main>
 <dialog id="copy-preview" aria-labelledby="copy-preview-title"><div class="print-toolbar"><div><h2 id="copy-preview-title">Copia la taula</h2><p id="copy-status" role="status">Prem Ctrl+C (o ⌘C al Mac) i enganxa la taula a Excel o Word.</p></div><button id="copy-select" class="button">Selecciona tota la taula</button><button id="copy-close" class="button secondary">Tanca</button></div><div id="copy-table" class="print-panel" tabindex="0" role="region" aria-label="Taula preparada per copiar"></div></dialog>
 <dialog id="export-preview" aria-labelledby="export-preview-title"><div class="print-toolbar"><div><h2 id="export-preview-title">Taula per imprimir o desar en PDF</h2><p>Tria «Desa com a PDF» al diàleg d’impressió. Format A4 vertical. Pots activar «Divideix en blocs» al menú d’exportació per repartir les columnes.</p></div><button id="export-print" class="button">Imprimeix / Desa PDF</button><button id="export-close" class="button secondary">Tanca</button></div><div id="export-pages"></div></dialog>
-<script src="catalog.js?v=20261119-reports-4"></script><script src="response-metadata.js?v=20261119-reports-4"></script><script src="core.js"></script><script src="data-loader.js"></script><script src="table.js?v=20261119-reports-4"></script><script src="table-export.js?v=20261119-reports-4"></script><script src="table-image.js?v=20261119-reports-4"></script><script src="app.js?v=20261120-gestio-1"></script>
+<script src="catalog.js?v=20261119-reports-4"></script><script src="response-metadata.js?v=20261119-reports-4"></script><script src="core.js"></script><script src="data-loader.js"></script><script src="table.js?v=20261119-reports-4"></script><script src="table-export.js?v=20261123-multi"></script><script src="table-image.js?v=20261119-reports-4"></script><script src="app.js?v=20261123-multi"></script>
 </body></html>

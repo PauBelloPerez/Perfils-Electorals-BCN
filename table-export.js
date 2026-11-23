@@ -29,6 +29,7 @@
         const header=!!cell.closest('thead'),label=cell.tagName==='TH';
         const bg=cell.style.backgroundColor?background(cell.style.backgroundColor):header?'EAF2EE':row.classList.contains('base-row')?'F7F9F8':'FFFFFF';
         const item={r,c,text:copy.textContent.trim(),rs:cell.rowSpan||1,cs:cell.colSpan||1,bold:header||label,bg,align:cell.classList.contains('row-label')?'left':'center',baseRow:row.classList.contains('base-row')};
+        if(cell.dataset?.share!==undefined)item.share=Number(cell.dataset.share);
         if(columnBase)item.columnBase=columnBase;
         cells.push(item);
         for(let rr=r;rr<r+item.rs;rr++){occupied[rr]??=[];for(let cc=c;cc<c+item.cs;cc++)occupied[rr][cc]=true;}
@@ -177,7 +178,7 @@
         const style=styleId(cell,numeric);
         if(cell.rs>1||cell.cs>1)merges.push(`${address}:${columnName(cell.c+cell.cs-1)}${r+cell.rs}`);
         if(r>=shift&&cell.rs===1){const chars=cell.c===0?30:20;const lines=text.split('\n').reduce((n,line)=>n+Math.max(1,Math.ceil(line.length/(chars*cell.cs))),0);height=Math.max(height,lines*14+12);}
-        return `<c r="${address}" s="${style}"${numeric?'':' t="inlineStr"'}>${numeric?`<v>${parseFloat(text.replace(',','.'))/(numeric==='percent'?100:1)}</v>`:`<is><t xml:space="preserve">${esc(text)}</t></is>`}</c>`;
+        return `<c r="${address}" s="${style}"${numeric?'':' t="inlineStr"'}>${numeric?`<v>${cell.share??(parseFloat(text.replace(',','.'))/(numeric==='percent'?100:1))}</v>`:`<is><t xml:space="preserve">${esc(text)}</t></is>`}</c>`;
       }).join('');
       rows.push(`<row r="${r+1}" ht="${height}" customHeight="1">${body}</row>`);
     }

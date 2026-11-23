@@ -118,6 +118,7 @@ function render(){
   $('source-badge').textContent=`${data.source} · ${num(data.rows.length)} registres`;
   $('source-text').textContent=`Fitxer: ${data.source}. ${num(data.rows.length)} registres i ${data.headers.length} variables. Indicador: ${state.indicator}. Referència: ${result.groupLabel} (${result.groupBy}). Desglossament: ${result.breakdownLabel}. Totes les enquestes i tots els anys conjuntament.`;
   $('coverage').innerHTML=Object.entries(result.coverage).map(([name,c])=>`<span>${esc(name)}: ${collection?range([c.min,c.max]):c.n}/${c.total} amb dada${collection?' per indicador':''}</span>`).join('');
+  if($('multi-panel').open)renderMulti();
   if(!collection)renderChart();renderTable();setView(view);
 }
 function renderChart(){
@@ -241,10 +242,66 @@ $('export-image').onclick=copyImage;
 $('copy-select').onclick=selectCopyTable;
 $('copy-close').onclick=()=>{$('copy-preview').close();window.getSelection()?.removeAllRanges();};
 $('export-print').onclick=()=>window.print();$('export-close').onclick=()=>$('export-preview').close();
+const multiIds=new Set(), multiCache=new Map();
+let multiFilterKey='';
+function multiOptions(){
+  const query=C.normalize($('multi-search').value);
+  const items=catalog.filter(v=>data.headers.includes(v.id)&&C.normalize([v.label,v.group,v.id].join(' ')).includes(query));
+  $('multi-options').innerHTML=items.map(v=>`<label><input type="checkbox" value="${esc(v.id)}" ${multiIds.has(v.id)?'checked':''}>${esc(v.label)}</label>`).join('')||'Cap coincidència';
+}
+function renderMulti(){
+  const key=JSON.stringify([state.groupBy,state.sex,state.profiles,state.excludeNS]);
+  if(key!==multiFilterKey){multiCache.clear();multiFilterKey=key;}
+  $('multi-count').textContent=`${multiIds.size} indicadors seleccionats`;
+  $('multi-export').disabled=!multiIds.size;
+  if(!multiIds.size){$('multi-table').innerHTML='';return;}
+  let head='',body='';
+  for(const id of multiIds){
+    if(!multiCache.has(id))multiCache.set(id,C.summarize(data,{...state,indicator:id}));
+    const summary=multiCache.get(id),groups=[summary.reference,...summary.groups];
+    if(!head)head='<th>Indicador</th><th>Categoria</th>'+groups.map(g=>`<th>${esc(g.profile)}<br> ${esc(g.subgroup)}</th>`).join('');
+    const label=catalog.find(v=>v.id===id).label;
+    body+=`<tr class="base-row"><th class="row-label" scope="rowgroup" rowspan="${summary.responses.length+1}">${esc(label)}</th><th>Base (n)</th>${groups.map(g=>`<td>${g.n}</td>`).join('')}</tr>`;
+    for(const value of summary.responses){
+      const label=id.startsWith('MENCIO_TEMES_')?({'0':'No','1':'Sí'}[value]??value):String(value).replaceAll('_',' ');
+      body+=`<tr><th scope="row">${esc(label)}</th>${groups.map(g=>{
+        if(!g.n)return '<td>—</td>';
+        const share=g.counts[value]/g.n;
+        return `<td data-share="${share}">${fmt(share*100)}%</td>`;
+      }).join('')}</tr>`;
+    }
+    body+='</tbody><tbody>';
+  }
+  $('multi-table').innerHTML=`<table class="results-table"><caption>Percentatges sobre la base de cada indicador i perfil.</caption><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`;
+}
+$('multi-search').oninput=multiOptions;
+$('multi-options').onchange=event=>{
+  const input=event.target;
+  if(input.checked)multiIds.add(input.value);else multiIds.delete(input.value);
+  renderMulti();
+};
+$('multi-panel').ontoggle=()=>{if(data&&$('multi-panel').open)renderMulti();};
+$('multi-export').onclick=()=>{
+  const model=TableExport.capture($('multi-table').querySelector('table'),{
+    title:'Taula de diversos indicadors',description:'Base vàlida per indicador, perfil i subgrup.',
+    context:`${result.groupLabel} · ${result.breakdownLabel} · NS/NC ${state.excludeNS?'exclosos':'inclosos'} · Sense ponderar · ${data.source}`,
+    fixedColumns:2,decimals:tableOptions.decimals
+  });
+  const link=document.createElement('a');
+  link.href=URL.createObjectURL(new Blob([TableExport.xlsx(model)],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
+  link.download='taula_diversos_indicadors.xlsx';
+  link.click();
+  setTimeout(()=>URL.revokeObjectURL(link.href),1000);
+};
 function adoptData(next){
   const unknown=next.headers.filter(k=>!['ID2','SEXE','estudi','ANY'].includes(k)&&!catalog.some(v=>v.id===k));
   catalog=[...catalog,...unknown.map(id=>({id,label:id.replaceAll('_',' '),description:C.descriptionFor(id)||'Descripció pendent de completar.',group:'Altres indicadors',warning:C.descriptionFor(id)?'':'Variable nova sense descripció al diccionari.'}))];
   data=next;
+  multiIds.clear();
+  multiCache.clear();
+  $('multi-search').value='';
+  $('multi-panel').hidden=false;
+  multiOptions();
   document.querySelectorAll('.filters,.workspace,.technical').forEach(el=>el.hidden=false);
   $('search').disabled=false;$('reset').disabled=false;
   reset();
