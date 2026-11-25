@@ -19,10 +19,10 @@ const context=vm.createContext({
  ProfileCore:require('../core.js'),ProfileTable:require('../table.js'),Intl,setTimeout
 });
 vm.runInContext(fs.readFileSync(require.resolve('../app.js'),'utf8'),context);
-context.fixture={source:'test.csv',headers:['ID2','SEXE','estudi','ANY','PRIMER_PROBLEMA','MENCIO_TEMES_Habitatge','DISTRICTE','PERFIL_POLITIC'],rows:[
- ['A','Home','Test','2026','Inseguretat','1','Ciutat Vella',"Satisfets d'esquerres"],
- ['A','Dona','Test','2026','Inseguretat','0','Ciutat Vella','No simpatitzants'],
- ['B','Home','Test','2025','Habitatge','1','Eixample',null]
+context.fixture={source:'test.csv',headers:['ID2','SEXE','estudi','ANY','PRIMER_PROBLEMA','MENCIO_TEMES_Habitatge','DISTRICTE','PERFIL_POLITIC','MENCIO_TEMES_Turisme'],rows:[
+ ['A','Home','Test','2026','Inseguretat','1','Ciutat Vella',"Satisfets d'esquerres",'1'],
+ ['A','Dona','Test','2026','Inseguretat','0','Ciutat Vella','No simpatitzants',null],
+ ['B','Home','Test','2025','Habitatge','1','Eixample',null,'1']
 ]};
 vm.runInContext('adoptData(fixture)',context);
 element('multi-panel').open=true;
@@ -34,6 +34,37 @@ assert.equal((combined.match(/<th>Base \(n\)<\/th>/g)||[]).length,2);
 assert.ok(combined.includes('<th>Base (n)</th><td>3</td>'));
 assert.ok(combined.includes('<th>Base (n)</th><td>2</td>'));
 assert.ok(combined.includes('33,3%'));
+assert.equal(element('multi-mention-control').hidden,true);
+element('multi-search').value='tots els problemes';element('multi-search').oninput();
+assert.ok(element('multi-options').innerHTML.includes('value="__MENCIO_PROBLEMA"'));
+for(const id of ['__MENCIO_PROBLEMA','MENCIO_TEMES_Habitatge']){
+  element('multi-options').onchange({target:{value:id,checked:true}});
+}
+assert.equal(element('multi-mention-control').hidden,false);
+assert.equal(element('multi-mention-response').value,'1');
+assert.equal(element('multi-count').textContent,'4 indicadors seleccionats');
+assert.match(element('multi-table').innerHTML,/Menció: Habitatge<\/th><th>Base \(n\)<\/th><td>3<\/td>/);
+assert.match(element('multi-table').innerHTML,/Menció: Turisme<\/th><th>Base \(n\)<\/th><td>2<\/td>/);
+assert.match(element('multi-table').innerHTML,/>Sí<\/th><td data-share="1">100,0%<\/td>/);
+element('multi-mention-response').value='0';element('multi-mention-response').onchange();
+assert.match(element('multi-table').innerHTML,/>No<\/th><td data-share="0">0,0%<\/td>/);
+assert.ok(!element('multi-table').innerHTML.includes('NaN'));
+const multiTable=element('multi-table');
+multiTable.querySelector=()=>multiTable.innerHTML;
+context.TableExport={capture:table=>table,xlsx:table=>table};
+element('multi-export').onclick();
+assert.equal(exported,multiTable.innerHTML);
+element('sex').value='Dona';element('sex').onchange();
+assert.match(element('multi-table').innerHTML,/Menció: Turisme<\/th><th>Base \(n\)<\/th><td>0<\/td>/);
+assert.match(element('multi-table').innerHTML,/>No<\/th><td>—<\/td>/);
+element('sex').value='compare';element('sex').onchange();
+element('multi-options').onchange({target:{value:'__MENCIO_PROBLEMA',checked:false}});
+assert.equal(element('multi-mention-control').hidden,true);
+assert.equal(element('multi-count').textContent,'3 indicadors seleccionats');
+assert.ok(element('multi-table').innerHTML.includes('Menció: Habitatge'));
+assert.ok(!element('multi-table').innerHTML.includes('Menció: Turisme'));
+element('multi-options').onchange({target:{value:'MENCIO_TEMES_Habitatge',checked:false}});
+element('multi-search').value='';element('multi-search').oninput();
 for(const id of ['PRIMER_PROBLEMA','PERFIL_POLITIC']){
   element('multi-options').onchange({target:{value:id,checked:false}});
 }
@@ -106,6 +137,7 @@ context.servicesFixture={source:'services.csv',headers:['ID2','SEXE','estudi','A
  ['B','Home','Services','2026','Utilitza','No utilitza']
 ]};
 vm.runInContext(`catalog.push({id:'US_APARCA',label:'Ús: Aparcament',group:'Serveis i espai públic'}, {id:'US_METRO',label:'Ús: Metro',group:'Serveis i espai públic'});adoptData(servicesFixture);`,context);
+assert.ok(!element('multi-options').innerHTML.includes('value="__MENCIO_PROBLEMA"'));
 assert.ok(element('catalog').innerHTML.includes('data-id="__US_SERVEIS"'));
 assert.ok(element('catalog').innerHTML.includes('data-id="US_APARCA"'));
 const usageButton={dataset:{id:'__US_SERVEIS'}};

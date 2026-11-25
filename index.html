@@ -33,7 +33,7 @@
       <summary>Taula de diversos indicadors</summary>
       <label>Cerca indicadors <input type="search" id="multi-search" placeholder="Nom, tema o variable"></label>
       <div id="multi-options" class="multi-options"></div>
-      <div class="chart-toolbar"><span id="multi-count" role="status"></span><button id="multi-export" class="button secondary" disabled>Exporta la taula a Excel</button></div>
+      <div class="chart-toolbar"><span id="multi-count" role="status"></span><label id="multi-mention-control" hidden>Resposta de menció<select id="multi-mention-response"><option value="1">Sí</option><option value="0">No</option></select></label><button id="multi-export" class="button secondary" disabled>Exporta la taula a Excel</button></div>
       <div id="multi-table" class="table-scroll" tabindex="0" aria-label="Taula de diversos indicadors"></div>
     </details>
     <section class="workspace" aria-labelledby="indicator-title" hidden>
@@ -60,5 +60,5 @@
 </main>
 <dialog id="copy-preview" aria-labelledby="copy-preview-title"><div class="print-toolbar"><div><h2 id="copy-preview-title">Copia la taula</h2><p id="copy-status" role="status">Prem Ctrl+C (o ⌘C al Mac) i enganxa la taula a Excel o Word.</p></div><button id="copy-select" class="button">Selecciona tota la taula</button><button id="copy-close" class="button secondary">Tanca</button></div><div id="copy-table" class="print-panel" tabindex="0" role="region" aria-label="Taula preparada per copiar"></div></dialog>
 <dialog id="export-preview" aria-labelledby="export-preview-title"><div class="print-toolbar"><div><h2 id="export-preview-title">Taula per imprimir o desar en PDF</h2><p>Tria «Desa com a PDF» al diàleg d’impressió. Format A4 vertical. Pots activar «Divideix en blocs» al menú d’exportació per repartir les columnes.</p></div><button id="export-print" class="button">Imprimeix / Desa PDF</button><button id="export-close" class="button secondary">Tanca</button></div><div id="export-pages"></div></dialog>
-<script src="catalog.js?v=20261119-reports-4"></script><script src="response-metadata.js?v=20261119-reports-4"></script><script src="core.js"></script><script src="data-loader.js"></script><script src="table.js?v=20261119-reports-4"></script><script src="table-export.js?v=20261123-multi"></script><script src="table-image.js?v=20261119-reports-4"></script><script src="app.js?v=20261123-multi"></script>
+<script src="catalog.js?v=20261119-reports-4"></script><script src="response-metadata.js?v=20261119-reports-4"></script><script src="core.js"></script><script src="data-loader.js"></script><script src="table.js?v=20261119-reports-4"></script><script src="table-export.js?v=20261123-multi"></script><script src="table-image.js?v=20261119-reports-4"></script><script src="app.js?v=20261125-multi-mencio"></script>
 </body></html>

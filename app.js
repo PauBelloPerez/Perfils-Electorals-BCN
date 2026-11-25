@@ -246,35 +246,45 @@ const multiIds=new Set(), multiCache=new Map();
 let multiFilterKey='';
 function multiOptions(){
   const query=C.normalize($('multi-search').value);
-  const items=catalog.filter(v=>data.headers.includes(v.id)&&C.normalize([v.label,v.group,v.id].join(' ')).includes(query));
+  const available=catalog.filter(v=>data.headers.includes(v.id));
+  if(mentionIndicators().length)available.unshift(mentionSet);
+  const items=available.filter(v=>C.normalize([v.label,v.group,v.id].join(' ')).includes(query));
   $('multi-options').innerHTML=items.map(v=>`<label><input type="checkbox" value="${esc(v.id)}" ${multiIds.has(v.id)?'checked':''}>${esc(v.label)}</label>`).join('')||'Cap coincidència';
 }
 function renderMulti(){
   const key=JSON.stringify([state.groupBy,state.sex,state.profiles,state.excludeNS]);
   if(key!==multiFilterKey){multiCache.clear();multiFilterKey=key;}
-  $('multi-count').textContent=`${multiIds.size} indicadors seleccionats`;
-  $('multi-export').disabled=!multiIds.size;
-  if(!multiIds.size){$('multi-table').innerHTML='';return;}
+  const showMentions=multiIds.has(mentionSet.id);
+  const mentionIds=new Set(showMentions?mentionIndicators():[]);
+  const indicators=new Set([...multiIds].flatMap(id=>id===mentionSet.id?[...mentionIds]:[id]));
+  const mentionResponse=$('multi-mention-response').value;
+  $('multi-mention-control').hidden=!showMentions;
+  $('multi-count').textContent=`${indicators.size} indicadors seleccionats`;
+  $('multi-export').disabled=!indicators.size;
+  if(!indicators.size){$('multi-table').innerHTML='';return;}
   let head='',body='';
-  for(const id of multiIds){
+  for(const id of indicators){
     if(!multiCache.has(id))multiCache.set(id,C.summarize(data,{...state,indicator:id}));
     const summary=multiCache.get(id),groups=[summary.reference,...summary.groups];
     if(!head)head='<th>Indicador</th><th>Categoria</th>'+groups.map(g=>`<th>${esc(g.profile)}<br> ${esc(g.subgroup)}</th>`).join('');
-    const label=catalog.find(v=>v.id===id).label;
-    body+=`<tr class="base-row"><th class="row-label" scope="rowgroup" rowspan="${summary.responses.length+1}">${esc(label)}</th><th>Base (n)</th>${groups.map(g=>`<td>${g.n}</td>`).join('')}</tr>`;
-    for(const value of summary.responses){
+    const fromMentionSet=mentionIds.has(id);
+    const label=fromMentionSet?`Menció: ${mentionLabel(id)}`:catalog.find(v=>v.id===id).label;
+    const responses=fromMentionSet?[mentionResponse]:summary.responses;
+    body+=`<tbody><tr class="base-row"><th class="row-label" scope="rowgroup" rowspan="${responses.length+1}">${esc(label)}</th><th>Base (n)</th>${groups.map(g=>`<td>${g.n}</td>`).join('')}</tr>`;
+    for(const value of responses){
       const label=id.startsWith('MENCIO_TEMES_')?({'0':'No','1':'Sí'}[value]??value):String(value).replaceAll('_',' ');
       body+=`<tr><th scope="row">${esc(label)}</th>${groups.map(g=>{
         if(!g.n)return '<td>—</td>';
-        const share=g.counts[value]/g.n;
+        const share=(g.counts[value]??0)/g.n;
         return `<td data-share="${share}">${fmt(share*100)}%</td>`;
       }).join('')}</tr>`;
     }
-    body+='</tbody><tbody>';
+    body+='</tbody>';
   }
-  $('multi-table').innerHTML=`<table class="results-table"><caption>Percentatges sobre la base de cada indicador i perfil.</caption><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`;
+  $('multi-table').innerHTML=`<table class="results-table"><caption>Percentatges sobre la base de cada indicador i perfil.</caption><thead><tr>${head}</tr></thead>${body}</table>`;
 }
 $('multi-search').oninput=multiOptions;
+$('multi-mention-response').onchange=renderMulti;
 $('multi-options').onchange=event=>{
   const input=event.target;
   if(input.checked)multiIds.add(input.value);else multiIds.delete(input.value);
@@ -300,6 +310,7 @@ function adoptData(next){
   multiIds.clear();
   multiCache.clear();
   $('multi-search').value='';
+  $('multi-mention-response').value='1';
   $('multi-panel').hidden=false;
   multiOptions();
   document.querySelectorAll('.filters,.workspace,.technical').forEach(el=>el.hidden=false);
