@@ -151,6 +151,6 @@
         return [name,{total:first.coverage[name].total,min:Math.min(...bases),max:Math.max(...bases)}];
       }))};
   }
-  const api={GROUPINGS,POLITICAL_BREAKDOWNS,politicalBloc,normalize,missing,profile,compareProfiles,compareResponses,orderedResponses,sexesFor,descriptionFor,nonresponse,parseCSV,summarize,summarizeCollection};
+  const api={GROUPINGS,POLITICAL_BREAKDOWNS,politicalBloc,politicalSubgroup,normalize,missing,profile,compareProfiles,compareResponses,orderedResponses,sexesFor,descriptionFor,nonresponse,parseCSV,summarize,summarizeCollection};
   if(typeof module!=='undefined')module.exports=api;else root.ProfileCore=api;
 })(typeof window!=='undefined'?window:globalThis);

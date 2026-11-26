@@ -30,6 +30,7 @@
         const bg=cell.style.backgroundColor?background(cell.style.backgroundColor):header?'EAF2EE':row.classList.contains('base-row')?'F7F9F8':'FFFFFF';
         const item={r,c,text:copy.textContent.trim(),rs:cell.rowSpan||1,cs:cell.colSpan||1,bold:header||label,bg,align:cell.classList.contains('row-label')?'left':'center',baseRow:row.classList.contains('base-row')};
         if(cell.dataset?.share!==undefined)item.share=Number(cell.dataset.share);
+        if(cell.dataset?.volume!==undefined)item.volume=Number(cell.dataset.volume);
         if(columnBase)item.columnBase=columnBase;
         cells.push(item);
         for(let rr=r;rr<r+item.rs;rr++){occupied[rr]??=[];for(let cc=c;cc<c+item.cs;cc++)occupied[rr][cc]=true;}
@@ -77,7 +78,8 @@
   // independent bases in each cell, so they intentionally have no base row.
   function compactBases(model){
     const baseRow=model.cells.find(c=>c.baseRow)?.r;
-    if(baseRow===undefined||baseRow!==model.headerRows)return model;
+    if(baseRow===undefined||baseRow<model.headerRows||baseRow>model.headerRows+1)return model;
+    if(baseRow>model.headerRows&&!model.cells.some(c=>c.r===model.headerRows&&c.volume!==undefined))return model;
     const cells=model.cells.filter(c=>c.r!==baseRow).map(c=>({...c}));
     for(const base of model.cells.filter(c=>c.baseRow&&c.c>0)){
       const header=cells.find(c=>c.r<model.headerRows&&c.r+c.rs===model.headerRows&&c.c===base.c&&c.cs===1);
@@ -174,11 +176,11 @@
       let height=r<shift?[28,34,42,52,24,10][r]:24;
       const body=entries.map(cell=>{
         const address=columnName(cell.c)+(r+1),text=String(cell.text);
-        const numeric=!cell.bold&&!cell.meta&&/^\d+(?:[,.]\d+)?%$/.test(text)?'percent':!cell.bold&&!cell.meta&&/^\d+$/.test(text)?'number':'';
+        const numeric=Number.isFinite(cell.volume)?'number':!cell.bold&&!cell.meta&&/^\d+(?:[,.]\d+)?%$/.test(text)?'percent':!cell.bold&&!cell.meta&&/^\d+$/.test(text)?'number':'';
         const style=styleId(cell,numeric);
         if(cell.rs>1||cell.cs>1)merges.push(`${address}:${columnName(cell.c+cell.cs-1)}${r+cell.rs}`);
         if(r>=shift&&cell.rs===1){const chars=cell.c===0?30:20;const lines=text.split('\n').reduce((n,line)=>n+Math.max(1,Math.ceil(line.length/(chars*cell.cs))),0);height=Math.max(height,lines*14+12);}
-        return `<c r="${address}" s="${style}"${numeric?'':' t="inlineStr"'}>${numeric?`<v>${cell.share??(parseFloat(text.replace(',','.'))/(numeric==='percent'?100:1))}</v>`:`<is><t xml:space="preserve">${esc(text)}</t></is>`}</c>`;
+        return `<c r="${address}" s="${style}"${numeric?'':' t="inlineStr"'}>${numeric?`<v>${cell.volume??cell.share??(parseFloat(text.replace(',','.'))/(numeric==='percent'?100:1))}</v>`:`<is><t xml:space="preserve">${esc(text)}</t></is>`}</c>`;
       }).join('');
       rows.push(`<row r="${r+1}" ht="${height}" customHeight="1">${body}</row>`);
     }

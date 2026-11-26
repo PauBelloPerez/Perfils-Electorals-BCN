@@ -1,0 +1,822 @@
+{
+  "withoutSex": [
+    [
+      "Estrangers amb estudis i establerts",
+      "No simpatitzants",
+      8402
+    ],
+    [
+      "Estrangers amb estudis i establerts",
+      "Satisfets d'esquerres",
+      5138
+    ],
+    [
+      "Estrangers amb estudis i establerts",
+      "Satisfets de dretes",
+      2022
+    ],
+    [
+      "Estrangers amb estudis i establerts",
+      "Satisfets poc polititzats",
+      7496
+    ],
+    [
+      "Estrangers amb estudis i establerts",
+      "Simpatitzants o exvotants decidament d'esquerres",
+      1179
+    ],
+    [
+      "Estrangers amb estudis i establerts",
+      "Simpatitzants o exvotants no decididament d'esquerres",
+      2127
+    ],
+    [
+      "Estrangers recent arribats",
+      "No simpatitzants",
+      84147
+    ],
+    [
+      "Estrangers recent arribats",
+      "Satisfets d'esquerres",
+      49194
+    ],
+    [
+      "Estrangers recent arribats",
+      "Satisfets de dretes",
+      33982
+    ],
+    [
+      "Estrangers recent arribats",
+      "Satisfets poc polititzats",
+      124117
+    ],
+    [
+      "Estrangers recent arribats",
+      "Simpatitzants o exvotants decidament d'esquerres",
+      5016
+    ],
+    [
+      "Estrangers recent arribats",
+      "Simpatitzants o exvotants no decididament d'esquerres",
+      8577
+    ],
+    [
+      "Estrangers sense estudis establerts",
+      "No simpatitzants",
+      16057
+    ],
+    [
+      "Estrangers sense estudis establerts",
+      "Satisfets d'esquerres",
+      6451
+    ],
+    [
+      "Estrangers sense estudis establerts",
+      "Satisfets de dretes",
+      4254
+    ],
+    [
+      "Estrangers sense estudis establerts",
+      "Satisfets poc polititzats",
+      18734
+    ],
+    [
+      "Estrangers sense estudis establerts",
+      "Simpatitzants o exvotants decidament d'esquerres",
+      3296
+    ],
+    [
+      "Estrangers sense estudis establerts",
+      "Simpatitzants o exvotants no decididament d'esquerres",
+      5437
+    ],
+    [
+      "Majors de 45 anys amb estudis universitaris",
+      "No simpatitzants",
+      36431
+    ],
+    [
+      "Majors de 45 anys amb estudis universitaris",
+      "Satisfets d'esquerres",
+      10166
+    ],
+    [
+      "Majors de 45 anys amb estudis universitaris",
+      "Satisfets de dretes",
+      1407
+    ],
+    [
+      "Majors de 45 anys amb estudis universitaris",
+      "Satisfets poc polititzats",
+      6899
+    ],
+    [
+      "Majors de 45 anys amb estudis universitaris",
+      "Simpatitzants o exvotants decidament d'esquerres",
+      6409
+    ],
+    [
+      "Majors de 45 anys amb estudis universitaris",
+      "Simpatitzants o exvotants no decididament d'esquerres",
+      7377
+    ],
+    [
+      "Menors 45 anys amb estudis universitàris",
+      "No simpatitzants",
+      23808
+    ],
+    [
+      "Menors 45 anys amb estudis universitàris",
+      "Satisfets d'esquerres",
+      9699
+    ],
+    [
+      "Menors 45 anys amb estudis universitàris",
+      "Satisfets de dretes",
+      1621
+    ],
+    [
+      "Menors 45 anys amb estudis universitàris",
+      "Satisfets poc polititzats",
+      5428
+    ],
+    [
+      "Menors 45 anys amb estudis universitàris",
+      "Simpatitzants o exvotants decidament d'esquerres",
+      1922
+    ],
+    [
+      "Menors 45 anys amb estudis universitàris",
+      "Simpatitzants o exvotants no decididament d'esquerres",
+      2475
+    ],
+    [
+      "Menors de 45 anys sense estudis universitaris",
+      "No simpatitzants",
+      19514
+    ],
+    [
+      "Menors de 45 anys sense estudis universitaris",
+      "Satisfets d'esquerres",
+      6501
+    ],
+    [
+      "Menors de 45 anys sense estudis universitaris",
+      "Satisfets de dretes",
+      2378
+    ],
+    [
+      "Menors de 45 anys sense estudis universitaris",
+      "Satisfets poc polititzats",
+      8313
+    ],
+    [
+      "Menors de 45 anys sense estudis universitaris",
+      "Simpatitzants o exvotants decidament d'esquerres",
+      1529
+    ],
+    [
+      "Menors de 45 anys sense estudis universitaris",
+      "Simpatitzants o exvotants no decididament d'esquerres",
+      2039
+    ],
+    [
+      "Nascuts a Catalunya majors 45 anys sense estudis universitaris",
+      "No simpatitzants",
+      20607
+    ],
+    [
+      "Nascuts a Catalunya majors 45 anys sense estudis universitaris",
+      "Satisfets d'esquerres",
+      5293
+    ],
+    [
+      "Nascuts a Catalunya majors 45 anys sense estudis universitaris",
+      "Satisfets de dretes",
+      804
+    ],
+    [
+      "Nascuts a Catalunya majors 45 anys sense estudis universitaris",
+      "Satisfets poc polititzats",
+      4331
+    ],
+    [
+      "Nascuts a Catalunya majors 45 anys sense estudis universitaris",
+      "Simpatitzants o exvotants decidament d'esquerres",
+      4526
+    ],
+    [
+      "Nascuts a Catalunya majors 45 anys sense estudis universitaris",
+      "Simpatitzants o exvotants no decididament d'esquerres",
+      3509
+    ],
+    [
+      "Nascuts resta d'Espanya majors 45 anys sense estudis universitaris",
+      "No simpatitzants",
+      52023
+    ],
+    [
+      "Nascuts resta d'Espanya majors 45 anys sense estudis universitaris",
+      "Satisfets d'esquerres",
+      13677
+    ],
+    [
+      "Nascuts resta d'Espanya majors 45 anys sense estudis universitaris",
+      "Satisfets de dretes",
+      3835
+    ],
+    [
+      "Nascuts resta d'Espanya majors 45 anys sense estudis universitaris",
+      "Satisfets poc polititzats",
+      19301
+    ],
+    [
+      "Nascuts resta d'Espanya majors 45 anys sense estudis universitaris",
+      "Simpatitzants o exvotants decidament d'esquerres",
+      25053
+    ],
+    [
+      "Nascuts resta d'Espanya majors 45 anys sense estudis universitaris",
+      "Simpatitzants o exvotants no decididament d'esquerres",
+      20387
+    ]
+  ],
+  "withSex": [
+    [
+      "Estrangers amb estudis i establerts",
+      "Dona",
+      "No simpatitzants",
+      4885
+    ],
+    [
+      "Estrangers amb estudis i establerts",
+      "Dona",
+      "Satisfets d'esquerres",
+      3191
+    ],
+    [
+      "Estrangers amb estudis i establerts",
+      "Dona",
+      "Satisfets de dretes",
+      1144
+    ],
+    [
+      "Estrangers amb estudis i establerts",
+      "Dona",
+      "Satisfets poc polititzats",
+      4203
+    ],
+    [
+      "Estrangers amb estudis i establerts",
+      "Dona",
+      "Simpatitzants o exvotants decidament d'esquerres",
+      748
+    ],
+    [
+      "Estrangers amb estudis i establerts",
+      "Dona",
+      "Simpatitzants o exvotants no decididament d'esquerres",
+      1166
+    ],
+    [
+      "Estrangers amb estudis i establerts",
+      "Home",
+      "No simpatitzants",
+      3517
+    ],
+    [
+      "Estrangers amb estudis i establerts",
+      "Home",
+      "Satisfets d'esquerres",
+      1967
+    ],
+    [
+      "Estrangers amb estudis i establerts",
+      "Home",
+      "Satisfets de dretes",
+      874
+    ],
+    [
+      "Estrangers amb estudis i establerts",
+      "Home",
+      "Satisfets poc polititzats",
+      3278
+    ],
+    [
+      "Estrangers amb estudis i establerts",
+      "Home",
+      "Simpatitzants o exvotants decidament d'esquerres",
+      437
+    ],
+    [
+      "Estrangers amb estudis i establerts",
+      "Home",
+      "Simpatitzants o exvotants no decididament d'esquerres",
+      954
+    ],
+    [
+      "Estrangers recent arribats",
+      "Dona",
+      "No simpatitzants",
+      40783
+    ],
+    [
+      "Estrangers recent arribats",
+      "Dona",
+      "Satisfets d'esquerres",
+      24852
+    ],
+    [
+      "Estrangers recent arribats",
+      "Dona",
+      "Satisfets de dretes",
+      13382
+    ],
+    [
+      "Estrangers recent arribats",
+      "Dona",
+      "Satisfets poc polititzats",
+      62767
+    ],
+    [
+      "Estrangers recent arribats",
+      "Dona",
+      "Simpatitzants o exvotants decidament d'esquerres",
+      2390
+    ],
+    [
+      "Estrangers recent arribats",
+      "Dona",
+      "Simpatitzants o exvotants no decididament d'esquerres",
+      4301
+    ],
+    [
+      "Estrangers recent arribats",
+      "Home",
+      "No simpatitzants",
+      43370
+    ],
+    [
+      "Estrangers recent arribats",
+      "Home",
+      "Satisfets d'esquerres",
+      24313
+    ],
+    [
+      "Estrangers recent arribats",
+      "Home",
+      "Satisfets de dretes",
+      20699
+    ],
+    [
+      "Estrangers recent arribats",
+      "Home",
+      "Satisfets poc polititzats",
+      61277
+    ],
+    [
+      "Estrangers recent arribats",
+      "Home",
+      "Simpatitzants o exvotants decidament d'esquerres",
+      2628
+    ],
+    [
+      "Estrangers recent arribats",
+      "Home",
+      "Simpatitzants o exvotants no decididament d'esquerres",
+      4271
+    ],
+    [
+      "Estrangers sense estudis establerts",
+      "Dona",
+      "No simpatitzants",
+      8427
+    ],
+    [
+      "Estrangers sense estudis establerts",
+      "Dona",
+      "Satisfets d'esquerres",
+      3490
+    ],
+    [
+      "Estrangers sense estudis establerts",
+      "Dona",
+      "Satisfets de dretes",
+      2383
+    ],
+    [
+      "Estrangers sense estudis establerts",
+      "Dona",
+      "Satisfets poc polititzats",
+      11150
+    ],
+    [
+      "Estrangers sense estudis establerts",
+      "Dona",
+      "Simpatitzants o exvotants decidament d'esquerres",
+      1504
+    ],
+    [
+      "Estrangers sense estudis establerts",
+      "Dona",
+      "Simpatitzants o exvotants no decididament d'esquerres",
+      2894
+    ],
+    [
+      "Estrangers sense estudis establerts",
+      "Home",
+      "No simpatitzants",
+      7624
+    ],
+    [
+      "Estrangers sense estudis establerts",
+      "Home",
+      "Satisfets d'esquerres",
+      2960
+    ],
+    [
+      "Estrangers sense estudis establerts",
+      "Home",
+      "Satisfets de dretes",
+      1871
+    ],
+    [
+      "Estrangers sense estudis establerts",
+      "Home",
+      "Satisfets poc polititzats",
+      7596
+    ],
+    [
+      "Estrangers sense estudis establerts",
+      "Home",
+      "Simpatitzants o exvotants decidament d'esquerres",
+      1787
+    ],
+    [
+      "Estrangers sense estudis establerts",
+      "Home",
+      "Simpatitzants o exvotants no decididament d'esquerres",
+      2541
+    ],
+    [
+      "Majors de 45 anys amb estudis universitaris",
+      "Dona",
+      "No simpatitzants",
+      19668
+    ],
+    [
+      "Majors de 45 anys amb estudis universitaris",
+      "Dona",
+      "Satisfets d'esquerres",
+      5952
+    ],
+    [
+      "Majors de 45 anys amb estudis universitaris",
+      "Dona",
+      "Satisfets de dretes",
+      642
+    ],
+    [
+      "Majors de 45 anys amb estudis universitaris",
+      "Dona",
+      "Satisfets poc polititzats",
+      3473
+    ],
+    [
+      "Majors de 45 anys amb estudis universitaris",
+      "Dona",
+      "Simpatitzants o exvotants decidament d'esquerres",
+      3989
+    ],
+    [
+      "Majors de 45 anys amb estudis universitaris",
+      "Dona",
+      "Simpatitzants o exvotants no decididament d'esquerres",
+      3586
+    ],
+    [
+      "Majors de 45 anys amb estudis universitaris",
+      "Home",
+      "No simpatitzants",
+      16762
+    ],
+    [
+      "Majors de 45 anys amb estudis universitaris",
+      "Home",
+      "Satisfets d'esquerres",
+      4216
+    ],
+    [
+      "Majors de 45 anys amb estudis universitaris",
+      "Home",
+      "Satisfets de dretes",
+      765
+    ],
+    [
+      "Majors de 45 anys amb estudis universitaris",
+      "Home",
+      "Satisfets poc polititzats",
+      3425
+    ],
+    [
+      "Majors de 45 anys amb estudis universitaris",
+      "Home",
+      "Simpatitzants o exvotants decidament d'esquerres",
+      2421
+    ],
+    [
+      "Majors de 45 anys amb estudis universitaris",
+      "Home",
+      "Simpatitzants o exvotants no decididament d'esquerres",
+      3789
+    ],
+    [
+      "Menors 45 anys amb estudis universitàris",
+      "Dona",
+      "No simpatitzants",
+      12836
+    ],
+    [
+      "Menors 45 anys amb estudis universitàris",
+      "Dona",
+      "Satisfets d'esquerres",
+      6186
+    ],
+    [
+      "Menors 45 anys amb estudis universitàris",
+      "Dona",
+      "Satisfets de dretes",
+      823
+    ],
+    [
+      "Menors 45 anys amb estudis universitàris",
+      "Dona",
+      "Satisfets poc polititzats",
+      2841
+    ],
+    [
+      "Menors 45 anys amb estudis universitàris",
+      "Dona",
+      "Simpatitzants o exvotants decidament d'esquerres",
+      1354
+    ],
+    [
+      "Menors 45 anys amb estudis universitàris",
+      "Dona",
+      "Simpatitzants o exvotants no decididament d'esquerres",
+      1381
+    ],
+    [
+      "Menors 45 anys amb estudis universitàris",
+      "Home",
+      "No simpatitzants",
+      10900
+    ],
+    [
+      "Menors 45 anys amb estudis universitàris",
+      "Home",
+      "Satisfets d'esquerres",
+      3594
+    ],
+    [
+      "Menors 45 anys amb estudis universitàris",
+      "Home",
+      "Satisfets de dretes",
+      787
+    ],
+    [
+      "Menors 45 anys amb estudis universitàris",
+      "Home",
+      "Satisfets poc polititzats",
+      2561
+    ],
+    [
+      "Menors 45 anys amb estudis universitàris",
+      "Home",
+      "Simpatitzants o exvotants decidament d'esquerres",
+      599
+    ],
+    [
+      "Menors 45 anys amb estudis universitàris",
+      "Home",
+      "Simpatitzants o exvotants no decididament d'esquerres",
+      1092
+    ],
+    [
+      "Menors de 45 anys sense estudis universitaris",
+      "Dona",
+      "No simpatitzants",
+      8256
+    ],
+    [
+      "Menors de 45 anys sense estudis universitaris",
+      "Dona",
+      "Satisfets d'esquerres",
+      3637
+    ],
+    [
+      "Menors de 45 anys sense estudis universitaris",
+      "Dona",
+      "Satisfets de dretes",
+      921
+    ],
+    [
+      "Menors de 45 anys sense estudis universitaris",
+      "Dona",
+      "Satisfets poc polititzats",
+      3972
+    ],
+    [
+      "Menors de 45 anys sense estudis universitaris",
+      "Dona",
+      "Simpatitzants o exvotants decidament d'esquerres",
+      933
+    ],
+    [
+      "Menors de 45 anys sense estudis universitaris",
+      "Dona",
+      "Simpatitzants o exvotants no decididament d'esquerres",
+      969
+    ],
+    [
+      "Menors de 45 anys sense estudis universitaris",
+      "Home",
+      "No simpatitzants",
+      11182
+    ],
+    [
+      "Menors de 45 anys sense estudis universitaris",
+      "Home",
+      "Satisfets d'esquerres",
+      2923
+    ],
+    [
+      "Menors de 45 anys sense estudis universitaris",
+      "Home",
+      "Satisfets de dretes",
+      1440
+    ],
+    [
+      "Menors de 45 anys sense estudis universitaris",
+      "Home",
+      "Satisfets poc polititzats",
+      4352
+    ],
+    [
+      "Menors de 45 anys sense estudis universitaris",
+      "Home",
+      "Simpatitzants o exvotants decidament d'esquerres",
+      617
+    ],
+    [
+      "Menors de 45 anys sense estudis universitaris",
+      "Home",
+      "Simpatitzants o exvotants no decididament d'esquerres",
+      1072
+    ],
+    [
+      "Nascuts a Catalunya majors 45 anys sense estudis universitaris",
+      "Dona",
+      "No simpatitzants",
+      11521
+    ],
+    [
+      "Nascuts a Catalunya majors 45 anys sense estudis universitaris",
+      "Dona",
+      "Satisfets d'esquerres",
+      2763
+    ],
+    [
+      "Nascuts a Catalunya majors 45 anys sense estudis universitaris",
+      "Dona",
+      "Satisfets de dretes",
+      409
+    ],
+    [
+      "Nascuts a Catalunya majors 45 anys sense estudis universitaris",
+      "Dona",
+      "Satisfets poc polititzats",
+      2422
+    ],
+    [
+      "Nascuts a Catalunya majors 45 anys sense estudis universitaris",
+      "Dona",
+      "Simpatitzants o exvotants decidament d'esquerres",
+      2725
+    ],
+    [
+      "Nascuts a Catalunya majors 45 anys sense estudis universitaris",
+      "Dona",
+      "Simpatitzants o exvotants no decididament d'esquerres",
+      1970
+    ],
+    [
+      "Nascuts a Catalunya majors 45 anys sense estudis universitaris",
+      "Home",
+      "No simpatitzants",
+      9086
+    ],
+    [
+      "Nascuts a Catalunya majors 45 anys sense estudis universitaris",
+      "Home",
+      "Satisfets d'esquerres",
+      2524
+    ],
+    [
+      "Nascuts a Catalunya majors 45 anys sense estudis universitaris",
+      "Home",
+      "Satisfets de dretes",
+      394
+    ],
+    [
+      "Nascuts a Catalunya majors 45 anys sense estudis universitaris",
+      "Home",
+      "Satisfets poc polititzats",
+      1909
+    ],
+    [
+      "Nascuts a Catalunya majors 45 anys sense estudis universitaris",
+      "Home",
+      "Simpatitzants o exvotants decidament d'esquerres",
+      1808
+    ],
+    [
+      "Nascuts a Catalunya majors 45 anys sense estudis universitaris",
+      "Home",
+      "Simpatitzants o exvotants no decididament d'esquerres",
+      1539
+    ],
+    [
+      "Nascuts resta d'Espanya majors 45 anys sense estudis universitaris",
+      "Dona",
+      "No simpatitzants",
+      33757
+    ],
+    [
+      "Nascuts resta d'Espanya majors 45 anys sense estudis universitaris",
+      "Dona",
+      "Satisfets d'esquerres",
+      7589
+    ],
+    [
+      "Nascuts resta d'Espanya majors 45 anys sense estudis universitaris",
+      "Dona",
+      "Satisfets de dretes",
+      1701
+    ],
+    [
+      "Nascuts resta d'Espanya majors 45 anys sense estudis universitaris",
+      "Dona",
+      "Satisfets poc polititzats",
+      11907
+    ],
+    [
+      "Nascuts resta d'Espanya majors 45 anys sense estudis universitaris",
+      "Dona",
+      "Simpatitzants o exvotants decidament d'esquerres",
+      14458
+    ],
+    [
+      "Nascuts resta d'Espanya majors 45 anys sense estudis universitaris",
+      "Dona",
+      "Simpatitzants o exvotants no decididament d'esquerres",
+      12299
+    ],
+    [
+      "Nascuts resta d'Espanya majors 45 anys sense estudis universitaris",
+      "Home",
+      "No simpatitzants",
+      18386
+    ],
+    [
+      "Nascuts resta d'Espanya majors 45 anys sense estudis universitaris",
+      "Home",
+      "Satisfets d'esquerres",
+      6046
+    ],
+    [
+      "Nascuts resta d'Espanya majors 45 anys sense estudis universitaris",
+      "Home",
+      "Satisfets de dretes",
+      2098
+    ],
+    [
+      "Nascuts resta d'Espanya majors 45 anys sense estudis universitaris",
+      "Home",
+      "Satisfets poc polititzats",
+      7404
+    ],
+    [
+      "Nascuts resta d'Espanya majors 45 anys sense estudis universitaris",
+      "Home",
+      "Simpatitzants o exvotants decidament d'esquerres",
+      10550
+    ],
+    [
+      "Nascuts resta d'Espanya majors 45 anys sense estudis universitaris",
+      "Home",
+      "Simpatitzants o exvotants no decididament d'esquerres",
+      8082
+    ]
+  ]
+}

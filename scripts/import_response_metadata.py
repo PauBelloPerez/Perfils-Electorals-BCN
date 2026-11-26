@@ -13,7 +13,7 @@ NS = {'m': 'http://schemas.openxmlformats.org/spreadsheetml/2006/main'}
 REL_NS = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships'
 
 
-def read_dictionary(source):
+def read_single_sheet(source):
     with ZipFile(source) as z:
         strings = []
         if 'xl/sharedStrings.xml' in z.namelist():
@@ -21,7 +21,7 @@ def read_dictionary(source):
                        for si in ET.fromstring(z.read('xl/sharedStrings.xml')).findall('m:si', NS)]
         sheets = ET.fromstring(z.read('xl/workbook.xml')).findall('m:sheets/m:sheet', NS)
         if len(sheets) != 1:
-            raise ValueError('Expected one dictionary sheet; select the intended sheet before importing.')
+            raise ValueError(f'{source.name}: expected one worksheet.')
         sheet = sheets[0]
         relationships = {r.attrib['Id']: r.attrib['Target'] for r in ET.fromstring(z.read('xl/_rels/workbook.xml.rels'))}
         target = relationships[sheet.attrib['{' + REL_NS + '}id']]
@@ -31,7 +31,7 @@ def read_dictionary(source):
             cells = {}
             for cell in row:
                 if cell.find('m:f', NS) is not None:
-                    raise ValueError(f'Formula found at {cell.attrib["r"]}; use explicit dictionary values.')
+                    raise ValueError(f'{source.name}: formula found at {cell.attrib["r"]}; use explicit values.')
                 value = cell.find('m:v', NS)
                 if cell.get('t') == 's':
                     text = strings[int(value.text)]
@@ -43,7 +43,12 @@ def read_dictionary(source):
             if any(cells.values()):
                 rows.append((int(row.attrib['r']), cells))
     if not rows:
-        raise ValueError('Empty dictionary.')
+        raise ValueError(f'{source.name}: empty worksheet.')
+    return sheet.attrib['name'], rows
+
+
+def read_dictionary(source):
+    sheet, rows = read_single_sheet(source)
     header = {value.strip(): column for column, value in rows[0][1].items()}
     required = ['VARIABLE', 'DESCRIPCIÓ', 'RESPOSTA', 'ORDRE']
     if any(name not in header for name in required):
@@ -70,7 +75,7 @@ def read_dictionary(source):
         entry['responses'].append({'value': response, 'order': order})
     for entry in variables.values():
         entry['responses'].sort(key=lambda r: r['order'])
-    return {'source': source.name, 'sheet': sheet.attrib['name'], 'variables': variables}
+    return {'source': source.name, 'sheet': sheet, 'variables': variables}
 
 
 def main():

@@ -39,6 +39,10 @@ En **Preocupacions ciutadanes → Menció problema · tots els problemes**, una 
 
 ## Exportar la tabla con formato
 
+La fila **Volum del perfil (persones)** muestra el volumen de referencia de los grupos con cobertura. Puedes colocarla arriba o abajo con **Posició del volum**. En las vistas por sexo se usa `metadata/volum-perfils-amb-sexe.xlsx`; en las demás se usa `metadata/volum-perfils.xlsx`. Cada bloque político suma las categorías que lo componen dentro del mismo archivo. El volumen del conjunto suma los grupos clasificados de la tabla. Los volúmenes son independientes de la base de respuesta y del año o la encuesta del indicador.
+
+Si reemplazas los Excel de volumen, ejecuta `python scripts/import_profile_volumes.py` para regenerar `data/volum-perfils.json` y añade los tres archivos al commit.
+
 En **Exporta taula** puedes elegir **Normal** o **Compacte** para copiar una tabla editable, una imagen o imprimir un informe. Compacte reduce la letra y el espacio entre celdas. Las bases permanecen visibles. Para ocultar los recuentos por celda, desmarca **Mostra recomptes** en **Personalitza la taula**.
 
 La copia y la impresión mantienen todas las columnas en una sola tabla por defecto. **Divideix en blocs** es opcional y repite las etiquetas y columnas fijas en cada bloque. Las tablas altas pueden continuar en otras páginas; el formato de impresión es A4 vertical, con encabezados repetidos.

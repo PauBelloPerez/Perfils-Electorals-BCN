@@ -55,10 +55,13 @@ const mentionIndicators=()=>data.headers.filter(id=>id.startsWith('MENCIO_TEMES_
 const mentionLabel=id=>id.slice('MENCIO_TEMES_'.length).replaceAll('_',' ');
 const collectionIndicators=item=>item===mentionSet?mentionIndicators():item.indicators.filter(id=>data.headers.includes(id));
 const collectionRowLabel=id=>activeCollection()?.rowLabels?.[id]||(activeCollection()===mentionSet?mentionLabel(id):(catalog.find(item=>item.id===id)?.label||id).replace(/^Ús:\s*/, ''));
-const tableOptions={orientation:'columns',grouped:true,heat:true,counts:true,reference:true,decimals:1};
+const tableOptions={orientation:'columns',grouped:true,heat:true,counts:true,reference:true,decimals:1,volumePosition:'first'};
+let volumeData=new Map();
+const volumesFor=summary=>volumeData.size?ProfileData.volumesFor(volumeData,summary):volumeData;
 try{
   const saved=JSON.parse(localStorage.getItem('perfils-table-options')||'{}');
   if(['columns','rows'].includes(saved.orientation))tableOptions.orientation=saved.orientation;
+  if(saved.volumePosition==='last')tableOptions.volumePosition='last';
   if([0,1,2].includes(saved.decimals))tableOptions.decimals=saved.decimals;
   for(const key of ['grouped','heat','counts','reference'])if(typeof saved[key]==='boolean')tableOptions[key]=saved[key];
 }catch{/* Preferences are optional when browser storage is unavailable. */}
@@ -173,7 +176,12 @@ function renderChart(){
   }).join('')}</div></div>`).join(''):'<div class="empty">No hi ha respostes amb aquesta selecció.<br>Prova un altre indicador, grup de referència o desglossament.</div>';
 }
 function renderTable(){
-  $('table').innerHTML=ProfileTable.render(result,tableOptions,isCollection()?collectionRowLabel:labelResponse);
+  const volumes=volumesFor(result);
+  $('table-volume-control').hidden=!volumes.size;
+  const positions=$('table-volume-position');
+  positions.innerHTML=tableOptions.orientation==='columns'?option('first','A dalt')+option('last','A baix'):option('first','A l’inici')+option('last','Al final');
+  positions.value=tableOptions.volumePosition;
+  $('table').innerHTML=ProfileTable.render(result,{...tableOptions,volumes},isCollection()?collectionRowLabel:labelResponse);
   for(const id of ['export-xlsx','export-copy','export-image','export-pdf','export'])$(id).disabled=!result.valid;
   $('export-status').textContent='';
 }
@@ -270,6 +278,18 @@ for(const key of ['orientation','grouped','heat','counts','reference']){
     renderTable();
   };
 }
+const volumeControls=[$('table-volume-position'),$('multi-volume-position')];
+for(const control of volumeControls){
+  control.value=tableOptions.volumePosition;
+  control.onchange=()=>{
+    tableOptions.volumePosition=control.value;
+    for(const select of volumeControls)select.value=control.value;
+    try{localStorage.setItem('perfils-table-options',JSON.stringify(tableOptions));}catch{}
+    if(!data)return;
+    renderTable();
+    if($('multi-panel').open)renderMulti();
+  };
+}
 $('sex').onchange=()=>{state.sex=$('sex').value;referenceCategories();render();};
 $('political-scope').onchange=()=>{const value=$('political-scope').value;state.scope=value?JSON.parse(value):null;render();};
 $('group-by').onchange=()=>{state.groupBy=$('group-by').value;state.profiles=null;$('profile-details').open=false;referenceCategories();render();};
@@ -300,12 +320,16 @@ function renderMulti(){
   $('multi-mention-control').hidden=!showMentions;
   $('multi-count').textContent=`${indicators.size} indicadors seleccionats`;
   $('multi-export').disabled=!indicators.size;
+  $('multi-volume-control').hidden=true;
   if(!indicators.size){$('multi-table').innerHTML='';return;}
-  let blocks,body='';
+  let blocks,volume='',body='';
   for(const id of indicators){
     if(!multiCache.has(id))multiCache.set(id,C.summarize(data,{...state,indicator:id}));
     const summary=multiCache.get(id),groups=[summary.reference,...summary.groups];
-    blocks??=ProfileTable.profileBlocks(groups,{grouped:true,reference:true});
+    if(!blocks){
+      blocks=ProfileTable.profileBlocks(groups,{grouped:true,reference:true});
+      volume=ProfileTable.volumeRow(groups,volumesFor(summary),2);
+    }
     const fromMentionSet=mentionIds.has(id);
     const label=fromMentionSet?`Menció: ${mentionLabel(id)}`:catalog.find(v=>v.id===id).label;
     const responses=fromMentionSet?[mentionResponse]:summary.responses;
@@ -322,7 +346,12 @@ function renderMulti(){
   }
   const columns=ProfileTable.columnGroups(blocks,2);
   const head=ProfileTable.columnHeaders(blocks,['Indicador','Categoria'],undefined,'multi');
-  $('multi-table').innerHTML=`<table class="results-table columns"><caption>Percentatges sobre la base de cada indicador i perfil.</caption>${columns}<thead>${head}</thead>${body}</table>`;
+  $('multi-volume-control').hidden=!volume;
+  if(volume){
+    const section=`<tbody>${volume}</tbody>`;
+    body=tableOptions.volumePosition==='last'?body+section:section+body;
+  }
+  $('multi-table').innerHTML=`<table class="results-table columns"><caption>Percentatges sobre la base de cada indicador i perfil.${volume?' Volums de referència dels fitxers Excel.':''}</caption>${columns}<thead>${head}</thead>${body}</table>`;
 }
 $('multi-search').oninput=multiOptions;
 $('multi-mention-response').onchange=renderMulti;
@@ -380,8 +409,12 @@ async function start(){
   }
   $('message').textContent='Carregant data.csv…';
   try{
-    const next=await ProfileData.loadDefault(catalog.map(v=>v.id));
+    const [next,volumes]=await Promise.all([
+      ProfileData.loadDefault(catalog.map(v=>v.id)),
+      ProfileData.loadVolumes().catch(()=>new Map())
+    ]);
     if(request!==loadSequence)return;
+    volumeData=volumes;
     adoptData(next);$('message').hidden=true;
   }catch(error){
     if(request!==loadSequence)return;

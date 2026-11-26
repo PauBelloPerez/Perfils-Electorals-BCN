@@ -45,12 +45,23 @@
   function columnGroups(blocks,fixed){
     return `<colgroup span="${fixed}"></colgroup>`+blocks.map(b=>`<colgroup span="${b.groups.length}"></colgroup>`).join('');
   }
+  const volumeLabel='Volum del perfil (persones)';
+  const formatVolume=new Intl.NumberFormat('ca-ES',{maximumFractionDigits:0});
+  function volumeCell(value){
+    return Number.isFinite(value)?`<td data-volume="${value}">${formatVolume.format(value)}</td>`:'<td>—</td>';
+  }
+  function volumeRow(groups,volumes,fixed=1){
+    if(!volumes.size)return '';
+    return `<tr class="volume-row"><th scope="row" class="row-label"${fixed>1?` colspan="${fixed}"`:''}>${volumeLabel}</th>${groups.map(group=>volumeCell(volumes.get(group))).join('')}</tr>`;
+  }
   function render(result,options,labelResponse){
     const decimals=[0,1,2].includes(options.decimals)?options.decimals:1;
     const fmt=n=>new Intl.NumberFormat('ca-ES',{maximumFractionDigits:decimals,minimumFractionDigits:decimals}).format(n);
-    if(!result.valid)return '<div class="empty">No hi ha dades per a aquesta selecció.</div>';
+    const volumes=options.volumes??new Map();
+    if(!result.valid&&!volumes.size)return '<div class="empty">No hi ha dades per a aquesta selecció.</div>';
     const groups=options.reference?[result.reference,...result.groups]:result.groups;
     const blocks=profileBlocks(groups,options);
+    const volumeLast=options.volumePosition==='last';
     const base=g=>`${g.n>0&&g.n<30?'<i class="low-dot" aria-label="Base reduïda"></i>':''}${g.n}<small>${g.missing} excloses</small>`;
     const commonBase=g=>{
       const cells=Object.values(g.cells);
@@ -72,14 +83,20 @@
       head=columnHeaders(blocks,[result.collection?'Indicador':'Resposta'],headerBase);
       body=result.collection?'':`<tr class="base-row"><th id="table-base" scope="row" class="row-label">Base (n)</th>${groups.map((g,i)=>`<td headers="table-base table-subgroup-${i}">${base(g)}</td>`).join('')}</tr>`;
       body+=result.responses.map((v,r)=>`<tr><th id="table-answer-${r}" scope="row" class="row-label">${esc(labelResponse(v))}</th>${groups.map((g,i)=>cell(g,v,`table-answer-${r} table-subgroup-${i}`)).join('')}</tr>`).join('');
+      const volume=volumeRow(groups,volumes);
+      body=volumeLast?body+volume:volume+body;
     }else{
-      head=`<tr><th scope="col" class="row-label">Categoria</th><th scope="col">${esc(result.breakdownLabel||'Sexe')}</th>${result.collection?'':'<th scope="col">Base (n)</th>'}${result.responses.map((v,r)=>`<th id="table-answer-${r}" scope="col">${esc(labelResponse(v))}</th>`).join('')}</tr>`;
-      body=blocks.map((b,j)=>b.groups.map(({g,i},k)=>`<tr>${k===0?`<th id="table-profile-${j}" scope="${b.groups.length>1?'rowgroup':'row'}" rowspan="${b.groups.length}" class="row-label">${esc(b.profile)}</th>`:''}<th id="table-subgroup-${i}" headers="table-profile-${j}" scope="row">${esc(g.subgroup??g.sex)}${headerBase(g)}</th>${result.collection?'':`<td headers="table-subgroup-${i}">${base(g)}</td>`}${result.responses.map((v,r)=>cell(g,v,`table-profile-${j} table-subgroup-${i} table-answer-${r}`)).join('')}</tr>`).join('')).join('');
+      const volumeHeading=volumes.size?`<th scope="col">${volumeLabel}</th>`:'';
+      head=`<tr><th scope="col" class="row-label">Categoria</th><th scope="col">${esc(result.breakdownLabel||'Sexe')}</th>${volumeLast?'':volumeHeading}${result.collection?'':'<th scope="col">Base (n)</th>'}${result.responses.map((v,r)=>`<th id="table-answer-${r}" scope="col">${esc(labelResponse(v))}</th>`).join('')}${volumeLast?volumeHeading:''}</tr>`;
+      body=blocks.map((b,j)=>b.groups.map(({g,i},k)=>{
+        const volume=volumes.size?volumeCell(volumes.get(g)):'';
+        return `<tr>${k===0?`<th id="table-profile-${j}" scope="${b.groups.length>1?'rowgroup':'row'}" rowspan="${b.groups.length}" class="row-label">${esc(b.profile)}</th>`:''}<th id="table-subgroup-${i}" headers="table-profile-${j}" scope="row">${esc(g.subgroup??g.sex)}${headerBase(g)}</th>${volumeLast?'':volume}${result.collection?'':`<td headers="table-subgroup-${i}">${base(g)}</td>`}${result.responses.map((v,r)=>cell(g,v,`table-profile-${j} table-subgroup-${i} table-answer-${r}`)).join('')}${volumeLast?volume:''}</tr>`;
+      }).join('')).join('');
     }
     const caption=`Referència: ${esc(result.groupLabel||'Perfils sociodemogràfics')}. ${result.collection?`${esc(result.collectionLabel||'Menció problema')} · Resposta: ${esc(result.responseLabel||(result.response==='1'?'Sí':'No'))}. Base pròpia per indicador, grup i subgrup. Els percentatges dels indicadors no han de sumar 100%.`:'Percentatges dins de cada grup i subgrup.'} Desglossament: ${esc(result.breakdownLabel||'Sexe')}.${options.counts?' Recompte sota cada percentatge.':''}${options.heat?' Color més intens = percentatge més alt (escala comuna de 0 a 100%).':''}`;
     const columns=options.orientation==='columns'?columnGroups(blocks,1):'';
-    return `<table class="results-table ${options.orientation}"><caption>${caption}</caption>${columns}<thead>${head}</thead><tbody>${body}</tbody></table>`;
+    return `<table class="results-table ${options.orientation}"><caption>${caption}${volumes.size?' Volums de referència dels fitxers Excel.':''}</caption>${columns}<thead>${head}</thead><tbody>${body}</tbody></table>`;
   }
-  const api={render,profileBlocks,columnHeaders,columnGroups};
+  const api={render,profileBlocks,columnHeaders,columnGroups,volumeRow};
   if(typeof module!=='undefined')module.exports=api;else root.ProfileTable=api;
 })(typeof window!=='undefined'?window:globalThis);

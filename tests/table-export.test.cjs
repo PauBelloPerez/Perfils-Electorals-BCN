@@ -53,6 +53,13 @@ assert.ok(E.tsv(withBases).includes('n = • 100'));
 assert.ok(!E.html(withBases).includes('10 excloses'));
 assert.equal(E.compactBases(model),model);
 assert.equal(E.compactBases({...withBases,cells:withBases.cells.filter(c=>!(c.r===1&&c.c===1))}).rows,5);
+const withVolumes={...withBases,rows:6,cells:[
+ ...withBases.cells.map(c=>c.r>=2?{...c,r:c.r+1}:c),
+ cell(2,0,'Volum del perfil (persones)',{bold:true}),cell(2,1,'712.887',{volume:712887})
+]};
+assert.equal(E.compactBases(withVolumes).cells.find(c=>c.r===1&&c.c===1).columnBase,'n = • 100');
+assert.ok(E.html(withVolumes).includes('712.887'));
+assert.ok(Buffer.from(E.xlsx(withVolumes)).includes(Buffer.from('<v>712887</v>')));
 assert.equal(E.background('rgba(22, 118, 109, 0.3)'),'B9D6D3');
 const bytes=E.xlsx(model);assert.equal(bytes[0],0x50);assert.equal(bytes[1],0x4b);
 // Extract stored ZIP entries to check the exported document rather than private writer state.
