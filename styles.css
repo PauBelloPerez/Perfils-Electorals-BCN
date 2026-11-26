@@ -51,9 +51,11 @@
 
 .results-table .header-base{display:block;font-size:9px;font-weight:400;color:var(--muted)}
 .political-controls{grid-column:1/-1;display:grid;grid-template-columns:minmax(215px,1fr) 2fr;gap:12px 20px;align-items:start;border-top:1px solid var(--line);padding-top:14px}
-.political-controls details{font-size:12px;padding-top:2px}
+.political-controls details{grid-column:1/-1;font-size:12px;padding-top:2px}
 .political-controls summary{width:fit-content;cursor:pointer}
 .political-controls p{font-size:12px;max-width:64ch}
+#political-composition{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:10px 16px;margin:12px 0}
+#political-composition label{justify-content:space-between;color:var(--ink)}
 @media(max-width:800px){.political-controls{grid-template-columns:1fr}}
 
 .report-settings{padding:10px 12px;border-bottom:1px solid var(--line);margin-bottom:4px}.report-settings>label:not(.check){display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:11px;color:var(--muted)}.report-settings select{padding:5px;border:1px solid var(--line);border-radius:4px;background:white;font-size:12px}.report-settings .check{margin-top:10px;font-size:12px}.report-settings p{font-size:10px;line-height:1.5;margin-top:8px}

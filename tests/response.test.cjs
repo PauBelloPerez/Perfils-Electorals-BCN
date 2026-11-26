@@ -25,6 +25,12 @@ context.fixture={source:'test.csv',headers:['ID2','SEXE','estudi','ANY','PRIMER_
  ['B','Home','Test','2025','Habitatge','1','Eixample',null,'1']
 ]};
 vm.runInContext('adoptData(fixture)',context);
+const assignProfile=(profile,value)=>element('political-composition').onchange({target:{dataset:{profile},value}});
+assert.equal(element('valid-n').textContent,'2');
+assert.match(element('political-composition').innerHTML,/data-profile="noSimpatitzants"[^>]*>[^<]*(?:<option[^>]*>[^<]*<\/option>)*<option value="exclos" selected>/);
+assert.match(element('grouping-note').textContent,/1 registres exclosos per la composició/);
+assignProfile('noSimpatitzants','resta');
+assert.equal(element('valid-n').textContent,'3');
 element('multi-panel').open=true;
 for(const id of ['PRIMER_PROBLEMA','PERFIL_POLITIC']){
   element('multi-options').onchange({target:{value:id,checked:true}});
@@ -199,10 +205,12 @@ context.politicalFixture={source:'politics.csv',headers:['ID2','SEXE','estudi','
  ['A','Home','Other','2026','Inseguretat',null,'0']
 ]};
 vm.runInContext('adoptData(politicalFixture)',context);
-assert.equal(element('political-controls').hidden,true);
+assert.equal(element('political-controls').hidden,false);
+assert.equal(element('political-scope-control').hidden,true);
 assert.match(element('sex').innerHTML,/value="BLOC_POLITIC_SEXE"\s*>Bloc polític × sexe/);
 element('sex').value='BLOC_POLITIC_SEXE';element('sex').onchange();
 assert.equal(element('political-controls').hidden,false);
+assert.equal(element('political-scope-control').hidden,false);
 assert.ok(element('political-scope').innerHTML.includes('Test · 2026'));
 assert.ok(!element('political-scope').innerHTML.includes('Other'));
 assert.ok(!element('profile-options').innerHTML.includes('Sense perfil'));
@@ -256,8 +264,24 @@ assert.equal(element('valid-n').textContent,'2');
 assert.ok(element('legend').innerHTML.includes('Resta de perfils polítics'));
 assert.ok(!element('legend').innerHTML.includes('Home ·'));
 element('sex').value='compare';element('sex').onchange();
-assert.equal(element('political-controls').hidden,true);
+assert.equal(element('political-controls').hidden,false);
+assert.equal(element('political-scope-control').hidden,true);
 assert.equal(element('valid-n').textContent,'5');
+vm.runInContext(`
+  volumeSources={withoutSex:[],withSex:[
+    ['A','Dona',"Satisfets d'esquerres",100],['A','Home','Satisfets de dretes',50],['A','Dona','No simpatitzants',300]
+  ]};
+`,context);
+element('reset-political-composition').onclick();
+assert.equal(element('valid-n').textContent,'3');
+assert.match(element('multi-table').innerHTML,/<td data-volume="150">150<\/td>/);
+assignProfile('satisfetsDretes','exclos');
+assert.match(element('multi-table').innerHTML,/<td data-volume="100">100<\/td>/);
+assert.match(vm.runInContext('exportSnapshot()',context).context,/Fora de l’anàlisi \(Satisfets de dretes, No simpatitzants\)/);
+element('group-by').value='PERFIL_POLITIC';element('group-by').onchange();
+assert.ok(!element('profile-options').innerHTML.includes('No simpatitzants'));
+element('reset-political-composition').onclick();
+assert.equal(vm.runInContext('state.politicalComposition.satisfetsDretes',context),'resta');
 element('multi-panel').open=false;
 console.log('PASS: political block controls, filtered multi-indicator bases, CSV and formatted export metadata, and ordinary breakdowns.');
 

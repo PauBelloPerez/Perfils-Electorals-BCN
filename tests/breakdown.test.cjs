@@ -42,15 +42,16 @@ const file=path.join(__dirname,'..','data.csv');
 const full=fs.existsSync(file)?C.parseCSV(fs.readFileSync(file,'utf8')):null;
 if(full){
  const idx=Object.fromEntries(full.headers.map((v,i)=>[v,i]));
+ const included=full.rows.filter(row=>row[idx.PERFIL_POLITIC]!=='No simpatitzants');
  for(const groupBy of ['DISTRICTE','ID2']){
   const result=C.summarize(full,{groupBy,sex:'PERFIL_POLITIC',indicator:'PRIMER_PROBLEMA'});
   for(const g of result.groups){
-   const rows=full.rows.filter(row=>C.profile(row[idx[groupBy]],groupBy)===g.profile&&(C.missing(row[idx.PERFIL_POLITIC])?missing:row[idx.PERFIL_POLITIC])===g.subgroup);
+   const rows=included.filter(row=>C.profile(row[idx[groupBy]],groupBy)===g.profile&&(C.missing(row[idx.PERFIL_POLITIC])?missing:row[idx.PERFIL_POLITIC])===g.subgroup);
    assert.equal(g.total,rows.length);
    assert.equal(g.n,rows.filter(row=>!C.missing(row[idx.PRIMER_PROBLEMA])).length);
    assert.equal(g.counts.Habitatge,rows.filter(row=>row[idx.PRIMER_PROBLEMA]==='Habitatge').length);
   }
-  assert.equal(result.groups.reduce((n,g)=>n+g.total,0),full.rows.length);
+  assert.equal(result.groups.reduce((n,g)=>n+g.total,0),included.length);
  }
  console.log('PASS: independent full-data counts and bases for district/PSC and profile/PSC crossings.');
 }
@@ -114,11 +115,28 @@ for(const orientation of ['rows','columns']){
  const html=T.render(blocCollection,{orientation,grouped:true,reference:true,counts:false},v=>v);
  assert.ok(html.includes('n = 0')&&html.includes('Bloc polític × sexe'));
 }
+const compositionData={...blocsData,rows:[...blocsData.rows,
+ ['A','Home','One','2026','Eixample','No simpatitzants','Sí','1','1']
+]};
+const defaults=C.summarize(compositionData,politicalState);
+assert.equal(defaults.excludedByComposition,1);
+assert.equal(defaults.reference.n,blocs.reference.n);
+assert.equal(C.summarize(compositionData,{...politicalState,sex:'all'}).selected,blocsData.rows.length);
+assert.equal(C.summarize(compositionData,{...politicalState,sex:'Dona'}).excludedByComposition,0);
+assert.equal(C.summarize(compositionData,{...politicalState,groupBy:'PERFIL_POLITIC',sex:'all'}).groups.some(g=>g.profile==='No simpatitzants'),false);
+const changed={noSimpatitzants:'esquerres',satisfetsDretes:'exclos'};
+const regrouped=C.summarize(compositionData,{...politicalState,politicalComposition:changed});
+assert.equal(regrouped.excludedByComposition,2);
+assert.equal(group(regrouped,'A','Home · '+leftBloc).n,2);
+assert.equal(regrouped.groups.some(g=>g.profile==='B'),false);
+assert.equal(C.politicalComposition({noSimpatitzants:'unknown'}).noSimpatitzants,'exclos');
+const allOutside=Object.fromEntries(C.POLITICAL_PROFILES.map(({id})=>[id,'exclos']));
+assert.equal(C.summarize(compositionData,{...politicalState,politicalComposition:allOutside}).reference.n,0);
 if(full){
  const primer=C.summarize(full,{...politicalState,indicator:'PRIMER_PROBLEMA'});
  const idx=Object.fromEntries(full.headers.map((v,i)=>[v,i]));
  const leftProfiles=new Set([left,"Simpatitzants o exvotants decidament d'esquerres"]);
- const otherProfiles=new Set([right,"Simpatitzants o exvotants no decididament d'esquerres",'No simpatitzants','Satisfets poc polititzats']);
+ const otherProfiles=new Set([right,"Simpatitzants o exvotants no decididament d'esquerres",'Satisfets poc polititzats']);
  const classified=full.rows.filter(row=>!C.missing(row[idx.ID2])&&['Dona','Home'].includes(row[idx.SEXE])
    &&(leftProfiles.has(row[idx.PERFIL_POLITIC])||otherProfiles.has(row[idx.PERFIL_POLITIC])));
  assert.equal(primer.selected,classified.length);

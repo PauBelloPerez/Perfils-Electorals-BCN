@@ -17,19 +17,29 @@
     {id:'BLOC_POLITIC',label:'Bloc polític',bySex:false},
     {id:'BLOC_POLITIC_SEXE',label:'Bloc polític × sexe',bySex:true}
   ];
-  const politicalBlocs=['Bloc d’esquerres','Resta de perfils polítics'];
-  const politicalBlocByProfile=new Map([
-    ["simpatitzants o exvotants decidament d'esquerres",0],
-    ["simpatitzants o exvotants decididament d'esquerres",0],
-    ["satisfets d'esquerres",0],
-    ["simpatitzants o exvotants no decididament d'esquerres",1],
-    ['satisfets poc polititzats',1],
-    ['no simpatitzants',1],
-    ['satisfets de dretes',1]
-  ]);
-  function politicalBloc(value){
-    return politicalBlocs[politicalBlocByProfile.get(normalize(value).replaceAll('’',"'"))];
+  const POLITICAL_BLOCS={esquerres:'Bloc d’esquerres',resta:'Resta de perfils polítics'};
+  const POLITICAL_PROFILES=[
+    {id:'simpatitzantsEsquerres',label:"Simpatitzants o exvotants decidament d'esquerres",destination:'esquerres'},
+    {id:'satisfetsEsquerres',label:"Satisfets d'esquerres",destination:'esquerres'},
+    {id:'simpatitzantsAltres',label:"Simpatitzants o exvotants no decididament d'esquerres",destination:'resta'},
+    {id:'pocPolititzats',label:'Satisfets poc polititzats',destination:'resta'},
+    {id:'satisfetsDretes',label:'Satisfets de dretes',destination:'resta'},
+    {id:'noSimpatitzants',label:'No simpatitzants',destination:'exclos'}
+  ];
+  const POLITICAL_DESTINATIONS={...POLITICAL_BLOCS,exclos:'Fora de l’anàlisi'};
+  const politicalKey=value=>normalize(value).replaceAll('’',"'");
+  const politicalProfilesByValue=new Map(POLITICAL_PROFILES.map(entry=>[politicalKey(entry.label),entry]));
+  politicalProfilesByValue.set("simpatitzants o exvotants decididament d'esquerres",POLITICAL_PROFILES[0]);
+  const politicalProfile=value=>politicalProfilesByValue.get(politicalKey(value));
+  const politicalComposition=overrides=>Object.fromEntries(POLITICAL_PROFILES.map(({id,destination})=>[
+    id,Object.hasOwn(POLITICAL_DESTINATIONS,overrides?.[id])?overrides[id]:destination
+  ]));
+  const defaultComposition=politicalComposition();
+  function politicalDestination(value,composition=defaultComposition){
+    const entry=politicalProfile(value);
+    return entry&&(composition[entry.id]??entry.destination);
   }
+  const politicalBloc=(value,composition)=>POLITICAL_BLOCS[politicalDestination(value,composition)];
   const politicalSubgroup=(sex,bloc)=>sex==='Total'?bloc:`${sex} · ${bloc}`;
   const GROUPINGS=[
     {id:'ID2',label:'Perfils sociodemogràfics'},
@@ -90,15 +100,24 @@
     const matching=data.rows.filter(row=>(!scope||row[idx.estudi]===scope.study&&(!scope.year||row[idx.ANY]===scope.year))
       &&(!selectedProfiles||selectedProfiles.has(groupName(row))));
     const sexValues=sexesFor('compare');
-    const blocs=new Map();
-    const blocFor=row=>{
+    const referenceSex=sexValues.includes(state.sex)?state.sex:'Total';
+    const composition=state.politicalComposition?politicalComposition(state.politicalComposition):defaultComposition;
+    const assignments=new Map();
+    const destinationFor=row=>{
       const value=row[idx.PERFIL_POLITIC];
-      if(!blocs.has(value))blocs.set(value,politicalBloc(value));
-      return blocs.get(value);
+      if(!assignments.has(value))assignments.set(value,politicalDestination(value,composition));
+      return assignments.get(value);
     };
-    const selected=political?matching.filter(row=>blocFor(row)
-      &&(groupBy!=='ID2'||!missing(row[idx.ID2]))
-      &&(!political.bySex||sexValues.includes(row[idx.SEXE]))):matching;
+    let excludedByComposition=0;
+    const selected=idx.PERFIL_POLITIC===undefined?matching:matching.filter(row=>{
+      const destination=destinationFor(row);
+      if(destination==='exclos'){
+        if(referenceSex==='Total'||row[idx.SEXE]===referenceSex)excludedByComposition++;
+        return false;
+      }
+      return !political||(destination&&(groupBy!=='ID2'||!missing(row[idx.ID2]))
+        &&(!political.bySex||sexValues.includes(row[idx.SEXE])));
+    });
     const valid=r=>!missing(r[idx[state.indicator]])&&(!state.excludeNS||!nonresponse(r[idx[state.indicator]]));
     const available=selected.filter(valid);
     const responses=orderedResponses(state.indicator,new Set(available.map(r=>r[idx[state.indicator]])));
@@ -112,7 +131,9 @@
     const breakdownMissingLabel='Sense dada de desglossament';
     const subgroupName=r=>missing(r[idx[breakdownBy]])?breakdownMissingLabel:String(r[idx[breakdownBy]]);
     const rankLabel=v=>v===breakdownMissingLabel?missingGroupLabel(breakdownBy):v;
-    const politicalGroups=political?(political.bySex?sexValues:['Total']).flatMap(sex=>politicalBlocs.map(bloc=>({sex,bloc,subgroup:politicalSubgroup(sex,bloc)}))):[];
+    const destinations=new Set(Object.values(composition));
+    const assignedBlocs=Object.entries(POLITICAL_BLOCS).filter(([id])=>destinations.has(id));
+    const politicalGroups=political?(political.bySex?sexValues:['Total']).flatMap(sex=>assignedBlocs.map(([destination,bloc])=>({sex,destination,bloc,subgroup:politicalSubgroup(sex,bloc)}))):[];
     const subgroups=political?politicalGroups.map(g=>g.subgroup):categorical?[...new Set(selected.map(subgroupName))].sort((a,b)=>compareProfiles(rankLabel(a),rankLabel(b),breakdownBy)):sexesFor(state.sex);
     const make=(name,subgroup,source,sex,predicate)=>{
       const totalRows=predicate?source.filter(predicate):source;
@@ -121,14 +142,13 @@
       return {profile:name,subgroup,sex,total:totalRows.length,n:usable.length,missing:totalRows.length-usable.length,counts};
     };
     const groups=profiles.flatMap(p=>political
-      ?politicalGroups.map(({sex,bloc,subgroup})=>({...make(p,subgroup,buckets.get(p),sex,row=>blocFor(row)===bloc&&(sex==='Total'||row[idx.SEXE]===sex)),bloc}))
+      ?politicalGroups.map(({sex,destination,bloc,subgroup})=>({...make(p,subgroup,buckets.get(p),sex,row=>destinationFor(row)===destination&&(sex==='Total'||row[idx.SEXE]===sex)),bloc}))
       :subgroups.map(s=>make(p,s,buckets.get(p),categorical?'Total':s,categorical?row=>subgroupName(row)===s:s==='Total'?null:row=>row[idx.SEXE]===s)));
-    const referenceSex=sexValues.includes(state.sex)?state.sex:'Total';
     const reference=make('Conjunt seleccionat',referenceSex,selected,referenceSex,referenceSex==='Total'?null:row=>row[idx.SEXE]===referenceSex);
     const coverage={};for(const r of selected){const name=r[idx.estudi]??'Sense enquesta';coverage[name]??={total:0,n:0};coverage[name].total++;if(valid(r))coverage[name].n++;}
     const groupingMissing=selected.filter(r=>missing(r[idx[groupBy]])&&(reference.sex==='Total'||r[idx.SEXE]===reference.sex)).length;
     const breakdownMissing=categorical?selected.filter(r=>missing(r[idx[breakdownBy]])).length:0;
-    return {groups,reference,responses,coverage,selected:reference.total,valid:reference.n,missing:reference.missing,groupBy,groupLabel:grouping.label,missingGroupLabel:missingGroupLabel(groupBy),groupingMissing,breakdownBy,breakdownLabel,subgroups,breakdownMissing,breakdownMissingLabel,politicalExcluded:political?matching.length-selected.length:null};
+    return {groups,reference,responses,coverage,selected:reference.total,valid:reference.n,missing:reference.missing,groupBy,groupLabel:grouping.label,missingGroupLabel:missingGroupLabel(groupBy),groupingMissing,breakdownBy,breakdownLabel,subgroups,breakdownMissing,breakdownMissingLabel,excludedByComposition,politicalExcluded:political?matching.length-selected.length:null};
   }
   function summarizeCollection(data,state,indicators,response){
     const series=indicators.filter(id=>data.headers.includes(id)).map(id=>({id,result:summarize(data,{...state,indicator:id})}));
@@ -143,7 +163,7 @@
     };
     const range=key=>[Math.min(...series.map(s=>s.result[key])),Math.max(...series.map(s=>s.result[key]))];
     return {collection:true,series,response,responses:series.map(s=>s.id),groupBy:first.groupBy,groupLabel:first.groupLabel,missingGroupLabel:first.missingGroupLabel,groupingMissing:first.groupingMissing,
-      breakdownBy:first.breakdownBy,breakdownLabel:first.breakdownLabel,subgroups:first.subgroups,breakdownMissing:first.breakdownMissing,breakdownMissingLabel:first.breakdownMissingLabel,politicalExcluded:first.politicalExcluded,
+      breakdownBy:first.breakdownBy,breakdownLabel:first.breakdownLabel,subgroups:first.subgroups,breakdownMissing:first.breakdownMissing,breakdownMissingLabel:first.breakdownMissingLabel,excludedByComposition:first.excludedByComposition,politicalExcluded:first.politicalExcluded,
       groups:first.groups.map((_,i)=>combine(r=>r.groups[i])),reference:combine(r=>r.reference),
       selected:first.selected,valid:Math.max(...series.map(s=>s.result.valid)),validRange:range('valid'),missingRange:range('missing'),
       coverage:Object.fromEntries(Object.keys(first.coverage).map(name=>{
@@ -151,6 +171,6 @@
         return [name,{total:first.coverage[name].total,min:Math.min(...bases),max:Math.max(...bases)}];
       }))};
   }
-  const api={GROUPINGS,POLITICAL_BREAKDOWNS,politicalBloc,politicalSubgroup,normalize,missing,profile,compareProfiles,compareResponses,orderedResponses,sexesFor,descriptionFor,nonresponse,parseCSV,summarize,summarizeCollection};
+  const api={GROUPINGS,POLITICAL_BREAKDOWNS,POLITICAL_PROFILES,POLITICAL_DESTINATIONS,politicalProfile,politicalComposition,politicalDestination,politicalBloc,politicalSubgroup,normalize,missing,profile,compareProfiles,compareResponses,orderedResponses,sexesFor,descriptionFor,nonresponse,parseCSV,summarize,summarizeCollection};
   if(typeof module!=='undefined')module.exports=api;else root.ProfileCore=api;
 })(typeof window!=='undefined'?window:globalThis);

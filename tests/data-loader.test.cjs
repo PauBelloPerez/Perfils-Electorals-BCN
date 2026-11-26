@@ -1,6 +1,6 @@
 const assert=require('node:assert/strict');
-const {decode,loadDefault,loadVolumes,volumesFor}=require('../data-loader.js');
-const {summarize}=require('../core.js');
+const {decode,loadDefault,loadVolumes,volumeIndex,volumesFor}=require('../data-loader.js');
+const {politicalComposition,summarize}=require('../core.js');
 const volumeSources=require('../data/volum-perfils.json');
 const csv='\uFEFFID2;SEXE;estudi;ANY;PRIMER_PROBLEMA\r\nPerfil de prova;Home;Enquesta de prova;2026;Habitatge\r\n';
 const raw=new TextEncoder().encode(csv).buffer;
@@ -21,10 +21,11 @@ async function run(){
  assert.throws(()=>decode(new TextEncoder().encode(noProfile).buffer,'data.csv',['PRIMER_PROBLEMA']),/ID2/);
  console.log('PASS: automatic data.csv loading, manual loading, UTF-8, missing file, HTTP errors and schema validation.');
 
- const index=await loadVolumes(async url=>{
+ const sources=await loadVolumes(async url=>{
   assert.equal(url,'./data/volum-perfils.json');
   return {ok:true,json:async()=>volumeSources};
  });
+ const index=volumeIndex(sources);
  const profile='Estrangers sense estudis establerts';
  const fixture={headers:loaded.headers,rows:[
   [profile,'Home','Test','2026','Habitatge'],[profile,'Dona','Test','2026','Inseguretat'],
@@ -38,15 +39,20 @@ async function run(){
  const cross=summary('BLOC_POLITIC_SEXE');
  const bySex=volumesFor(index,cross);
  assert.equal(bySex.get(cross.groups.find(g=>g.sex==='Home'&&g.bloc==='Bloc d’esquerres')),4747);
- assert.equal(bySex.get(cross.groups.find(g=>g.sex==='Home'&&g.bloc==='Resta de perfils polítics')),19632);
- assert.equal(bySex.get(cross.reference),54227);
+ assert.equal(bySex.get(cross.groups.find(g=>g.sex==='Home'&&g.bloc==='Resta de perfils polítics')),12008);
+ assert.equal(bySex.get(cross.reference),38176);
  const withoutSex=summary('BLOC_POLITIC');
- assert.equal(volumesFor(index,withoutSex).get(withoutSex.reference),54229);
+ assert.equal(volumesFor(index,withoutSex).get(withoutSex.reference),38172);
  const noBreakdown=summary('all');
- assert.equal(volumesFor(index,noBreakdown).get(noBreakdown.reference),54229);
+ assert.equal(volumesFor(index,noBreakdown).get(noBreakdown.reference),38172);
  assert.equal(volumesFor(index,noBreakdown).has(noBreakdown.groups.find(g=>g.profile==='Sense perfil')),false);
  const missingCombination={...cross,groups:[...cross.groups,{profile:'Unmapped',subgroup:'Dona'}]};
  assert.equal(volumesFor(index,missingCombination).has(cross.reference),false);
+ const withoutRight=volumeIndex(sources,politicalComposition({satisfetsDretes:'exclos'}));
+ assert.equal(volumesFor(withoutRight,cross).get(cross.reference),33922);
+ const moved=volumeIndex(sources,politicalComposition({noSimpatitzants:'esquerres'}));
+ assert.equal(volumesFor(moved,cross).get(cross.groups.find(g=>g.sex==='Home'&&g.bloc==='Bloc d’esquerres')),12371);
+ assert.equal(volumesFor(moved,cross).get(cross.reference),54227);
  await assert.rejects(loadVolumes(async()=>({ok:true,json:async()=>({withoutSex:[volumeSources.withoutSex[0],volumeSources.withoutSex[0]],withSex:[]})})),/duplicats/);
  console.log('PASS: published profile volumes, independent source totals, political blocks, missing groups and duplicate validation.');
 }

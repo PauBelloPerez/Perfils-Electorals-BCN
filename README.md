@@ -39,6 +39,8 @@ En **Preocupacions ciutadanes → Menció problema · tots els problemes**, una 
 
 En **Taula de diversos indicadors**, **Model d’indicadors** carga una selección de variables. Tras aplicarla, puedes marcar y desmarcar indicadores, incluidos los del conjunto de menciones. **Només seleccionats** muestra solo los indicadores incluidos. **Desa la selecció com a model** guarda tu combinación en el navegador para reutilizarla. Al aplicar un modelo solo se seleccionan las variables presentes en el CSV activo.
 
+**Composició dels blocs polítics** permite asignar cada categoría de `PERFIL_POLITIC` al bloque de izquierdas, al resto o a **Fora de l’anàlisi**. Por defecto, «No simpatitzants» queda fuera y «Satisfets de dretes» forma parte del resto. Las exclusiones se aplican a todas las vistas, incluidos los totales y los volúmenes. Los registros sin clasificación pueden aparecer en las vistas generales cuando hay respuestas válidas. **Restableix la composició** recupera las asignaciones iniciales. La configuración se conserva en el navegador.
+
 ## Exportar la tabla con formato
 
 La fila **Volum del perfil (persones)** muestra el volumen de referencia de los grupos con cobertura. Puedes colocarla arriba o abajo con **Posició del volum**. En las vistas por sexo se usa `metadata/volum-perfils-amb-sexe.xlsx`; en las demás se usa `metadata/volum-perfils.xlsx`. Cada bloque político suma las categorías que lo componen dentro del mismo archivo. El volumen del conjunto suma los grupos clasificados de la tabla. Los volúmenes son independientes de la base de respuesta y del año o la encuesta del indicador.

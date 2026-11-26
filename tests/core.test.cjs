@@ -20,12 +20,13 @@ const samplePath=require('node:path').join(__dirname,'../data/sample.js');
 if(fs.existsSync(samplePath)){
 const sandbox={window:{}};vm.runInNewContext(fs.readFileSync(samplePath,'utf8'),sandbox);
 const sample=sandbox.window.SAMPLE_DATA;
-r=C.summarize(sample,{indicator:'PRIMER_PROBLEMA',sex:'compare'});
+const sampleState={indicator:'PRIMER_PROBLEMA',sex:'compare',politicalComposition:C.politicalComposition({noSimpatitzants:'resta'})};
+r=C.summarize(sample,sampleState);
 assert.equal(sample.rows.length,1000);assert.equal(r.valid,520);assert.equal(r.reference.counts.Inseguretat,132);assert.equal(r.reference.counts.Habitatge,117);
 for(const g of r.groups)assert.equal(Object.values(g.counts).reduce((a,b)=>a+b,0),g.n);
 assert.equal(r.groups.reduce((sum,g)=>sum+g.n,0),520);
 const large={...sample,rows:Array.from({length:45},()=>sample.rows).flat()};
-const start=performance.now();const big=C.summarize(large,{indicator:'PRIMER_PROBLEMA',sex:'compare'});
+const start=performance.now();const big=C.summarize(large,sampleState);
 assert.equal(big.valid,520*45);
 console.log('PASS: denominators, filters, missing profiles, NS/NC, CSV quoting and sample totals.');
 console.log('45,000 synthetic rows aggregation:',Math.round(performance.now()-start),'ms (repeated sample, not the full database).');

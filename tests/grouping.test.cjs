@@ -4,7 +4,7 @@ const fields=['ID2','SEXE','estudi','ANY','IDEO_3','MUNI_VOT','INT_VOT','PERFIL_
 const data={headers:fields,rows:[
  ['A','Home','One','2025','Esquerra','PSC','Indecís',"Satisfets d'esquerres",'Sí','1','Ciutat Vella'],
  ['B','Dona','One','2026','Esquerra','ERC','PSC',"Satisfets d'esquerres",'No','0','Eixample'],
- ['A','Home','Two','2026','No posicionats','Sense partit /Abstenció','Abstenció','No simpatitzants','Sí',null,'Ciutat Vella'],
+ ['A','Home','Two','2026','No posicionats','Sense partit /Abstenció','Abstenció','Satisfets poc polititzats','Sí',null,'Ciutat Vella'],
  [null,'Dona','Two','2026',null,'No disponible',null,null,'No','1',null],
  ['B','Dona','One','2025','Dreta','PSC','PSC','Satisfets de dretes',null,'0','Eixample'],
 ]};
