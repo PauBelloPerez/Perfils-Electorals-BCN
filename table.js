@@ -12,10 +12,35 @@
     return blocks;
   }
   function columnHeaders(blocks,labels,headerBase=()=>'',prefix='table'){
-    const fixed=labels.map((label,i)=>`<th rowspan="2" scope="col"${i===0?' class="row-label"':''}>${esc(label)}</th>`).join('');
+    const bySex=blocks.some(b=>b.groups.some(({g})=>g.bloc&&g.sex!=='Total'));
+    const fixed=labels.map((label,i)=>`<th rowspan="${bySex?3:2}" scope="col"${i===0?' class="row-label"':''}>${esc(label)}</th>`).join('');
     const profiles=blocks.map((b,j)=>`<th id="${prefix}-profile-${j}" scope="colgroup" colspan="${b.groups.length}" class="profile-heading group-start">${esc(b.profile)}</th>`).join('');
-    const subgroups=blocks.map((b,j)=>b.groups.map(({g,i},k)=>`<th id="${prefix}-subgroup-${i}" headers="${prefix}-profile-${j}" scope="col" class="${k===0?'group-start':''}">${esc(g.subgroup??g.sex)}${headerBase(g)}</th>`).join('')).join('');
-    return `<tr>${fixed}${profiles}</tr><tr>${subgroups}</tr>`;
+    const subgroup=(entry,parents,css,label,rowspan=1)=>{
+      const {g,i}=entry;
+      return `<th id="${prefix}-subgroup-${i}" headers="${parents}" scope="col" class="${css}"${rowspan>1?` rowspan="${rowspan}"`:''}>${esc(label)}${headerBase(g)}</th>`;
+    };
+    let middle='',bottom='';
+    blocks.forEach((block,j)=>{
+      const parent=`${prefix}-profile-${j}`;
+      if(!bySex||!block.groups[0].g.bloc){
+        middle+=block.groups.map((entry,k)=>subgroup(entry,parent,k===0?'group-start':'',entry.g.subgroup??entry.g.sex,bySex?2:1)).join('');
+        return;
+      }
+      const sexGroups=new Map();
+      for(const entry of block.groups){
+        if(!sexGroups.has(entry.g.sex))sexGroups.set(entry.g.sex,[]);
+        sexGroups.get(entry.g.sex).push(entry);
+      }
+      let first=true;
+      for(const [sex,entries] of sexGroups){
+        const id=`${prefix}-sex-${entries[0].i}`;
+        const start=first?'group-start':'sex-start';
+        middle+=`<th id="${id}" headers="${parent}" colspan="${entries.length}" class="sex-heading ${start}">${esc(sex)}</th>`;
+        bottom+=entries.map((entry,k)=>subgroup(entry,`${parent} ${id}`,k===0?start:'',entry.g.bloc)).join('');
+        first=false;
+      }
+    });
+    return `<tr>${fixed}${profiles}</tr><tr>${middle}</tr>${bySex?`<tr>${bottom}</tr>`:''}`;
   }
   function columnGroups(blocks,fixed){
     return `<colgroup span="${fixed}"></colgroup>`+blocks.map(b=>`<colgroup span="${b.groups.length}"></colgroup>`).join('');

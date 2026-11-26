@@ -121,7 +121,7 @@
       return {profile:name,subgroup,sex,total:totalRows.length,n:usable.length,missing:totalRows.length-usable.length,counts};
     };
     const groups=profiles.flatMap(p=>political
-      ?politicalGroups.map(({sex,bloc,subgroup})=>make(p,subgroup,buckets.get(p),sex,row=>blocFor(row)===bloc&&(sex==='Total'||row[idx.SEXE]===sex)))
+      ?politicalGroups.map(({sex,bloc,subgroup})=>({...make(p,subgroup,buckets.get(p),sex,row=>blocFor(row)===bloc&&(sex==='Total'||row[idx.SEXE]===sex)),bloc}))
       :subgroups.map(s=>make(p,s,buckets.get(p),categorical?'Total':s,categorical?row=>subgroupName(row)===s:s==='Total'?null:row=>row[idx.SEXE]===s)));
     const referenceSex=sexValues.includes(state.sex)?state.sex:'Total';
     const reference=make('Conjunt seleccionat',referenceSex,selected,referenceSex,referenceSex==='Total'?null:row=>row[idx.SEXE]===referenceSex);
