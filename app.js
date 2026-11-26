@@ -63,10 +63,37 @@ try{
   for(const key of ['grouped','heat','counts','reference'])if(typeof saved[key]==='boolean')tableOptions[key]=saved[key];
 }catch{/* Preferences are optional when browser storage is unavailable. */}
 const option=(value,label)=>`<option value="${esc(value)}">${esc(label??value)}</option>`;
+const politicalMode=()=>C.POLITICAL_BREAKDOWNS.find(mode=>mode.id===state.sex);
+const activeScope=()=>politicalMode()?state.scope:null;
+function scopeLabel(){
+  const scope=activeScope();
+  return scope?`${scope.study} · ${scope.year||'Tots els anys'}`:'Totes les enquestes i tots els anys';
+}
+function setupPoliticalScopes(){
+  const studyIndex=data.headers.indexOf('estudi'),yearIndex=data.headers.indexOf('ANY'),politicalIndex=data.headers.indexOf('PERFIL_POLITIC');
+  const studies=new Map();
+  const classified=new Map();
+  for(const row of data.rows){
+    const study=row[studyIndex],year=row[yearIndex],profile=row[politicalIndex];
+    if(!classified.has(profile))classified.set(profile,Boolean(C.politicalBloc(profile)));
+    if(C.missing(study)||!classified.get(profile))continue;
+    if(!studies.has(study))studies.set(study,new Set());
+    if(!C.missing(year))studies.get(study).add(year);
+  }
+  const scopes=[...studies].sort(([a],[b])=>a.localeCompare(b,'ca'));
+  $('political-scope').innerHTML=option('','Totes les enquestes i tots els anys')+scopes.map(([study,years])=>
+    `<optgroup label="${esc(study)}">${option(JSON.stringify({study}),`${study} · Tots els anys`)}${[...years].sort().map(year=>option(JSON.stringify({study,year}),`${study} · ${year}`)).join('')}</optgroup>`).join('');
+}
 const labelResponse=v=>state.indicator===mentionSet.id?(v==='1'?'Sí':v==='0'?'No':v):state.indicator.startsWith('MENCIO_TEMES_')?(v==='1'?'Sí, el menciona':v==='0'?'No el menciona':v):String(v).replaceAll('_',' ');
 function dimensions(){
   const sexes=C.sexesFor('compare');
-  $('sex').innerHTML=option('all','Total, sense desglossar')+option('compare',sexes.join(' i '))+sexes.map(s=>option(s,'Només '+s)).join('')+C.GROUPINGS.filter(g=>['PERFIL_POLITIC','EDAT'].includes(g.id)).map(g=>`<option value="${g.id}" ${data.headers.includes(g.id)?'':'disabled'}>${g.label}${data.headers.includes(g.id)?'':' · no disponible'}</option>`).join('');
+  const hasPolitics=data.headers.includes('PERFIL_POLITIC');
+  const broader=C.GROUPINGS.filter(g=>['PERFIL_POLITIC','EDAT'].includes(g.id));
+  const breakdownOptions=[...broader,...C.POLITICAL_BREAKDOWNS].map(({id,label})=>{
+    const available=broader.some(g=>g.id===id)?data.headers.includes(id):hasPolitics;
+    return `<option value="${id}" ${available?'':'disabled'}>${esc(label)}${available?'':' · no disponible'}</option>`;
+  }).join('');
+  $('sex').innerHTML=option('all','Total, sense desglossar')+option('compare',sexes.join(' i '))+sexes.map(s=>option(s,'Només '+s)).join('')+breakdownOptions;
   $('sex').value=state.sex;
   $('group-by').innerHTML=C.GROUPINGS.map(g=>`<option value="${g.id}" ${data.headers.includes(g.id)?'':'disabled'}>${esc(g.label)}${data.headers.includes(g.id)?'':' · no disponible'}</option>`).join('');
   $('group-by').value=state.groupBy;
@@ -74,12 +101,15 @@ function dimensions(){
 }
 function referenceCategories(){
   const profiles=[...new Set(data.rows.map(r=>C.profile(r[data.headers.indexOf(state.groupBy)],state.groupBy)))].sort((a,b)=>C.compareProfiles(a,b,state.groupBy));
-  $('profile-options').innerHTML='<button id="all-profiles" class="icon-button">Selecciona tots</button> · <button id="none-profiles" class="icon-button">Desmarca tots</button>'+profiles.map(p=>`<label><input type="checkbox" value="${esc(p)}" checked>${esc(p)}</label>`).join('');
-  const update=()=>{state.profiles=[...$('profile-options').querySelectorAll('input:checked')].map(el=>el.value);$('profile-summary').textContent=state.profiles.length===profiles.length?'Totes les categories':`${state.profiles.length} categories seleccionades`;render();};
+  const visible=politicalMode()&&state.groupBy==='ID2'?profiles.filter(p=>p!=='Sense perfil'):profiles;
+  const selected=visible.filter(p=>!state.profiles||state.profiles.includes(p));
+  const summarize=count=>{$('profile-summary').textContent=count===visible.length?'Totes les categories':`${count} categories seleccionades`;};
+  $('profile-options').innerHTML='<button id="all-profiles" class="icon-button">Selecciona tots</button> · <button id="none-profiles" class="icon-button">Desmarca tots</button>'+visible.map(p=>`<label><input type="checkbox" value="${esc(p)}" ${selected.includes(p)?'checked':''}>${esc(p)}</label>`).join('');
+  const update=()=>{const checked=[...$('profile-options').querySelectorAll('input:checked')].map(el=>el.value);state.profiles=checked.length===visible.length?null:checked;summarize(checked.length);render();};
   $('profile-options').onchange=update;
   $('all-profiles').onclick=()=>{$('profile-options').querySelectorAll('input').forEach(el=>el.checked=true);update();};
   $('none-profiles').onclick=()=>{$('profile-options').querySelectorAll('input').forEach(el=>el.checked=false);update();};
-  $('profile-summary').textContent='Totes les categories';
+  summarize(selected.length);
 }
 function navigation(){
   const query=C.normalize($('search').value);
@@ -98,8 +128,15 @@ function render(){
   result=collection?C.summarizeCollection(data,state,collectionIndicators(item),response):C.summarize(data,state);
   if(collection){result.collectionLabel=item.exportLabel||'Menció problema';result.responseLabel=labelResponse(response);}
   $('analysis-title').textContent=result.groupLabel;
+  $('political-controls').hidden=!politicalMode();
   $('grouping-note').hidden=false;
-  $('grouping-note').textContent=`Referència: ${result.groupLabel} (${result.groupBy}). ${num(result.groupingMissing)} registres seleccionats sense dada de referència, agrupats a «${result.missingGroupLabel}». Desglossament: ${result.breakdownLabel}.${['PERFIL_POLITIC','EDAT'].includes(result.breakdownBy)?` ${num(result.breakdownMissing)} registres a «${result.breakdownMissingLabel}».`:''}`;
+  if(politicalMode()){
+    const required=[...(state.groupBy==='ID2'?['ID2']:[]),'bloc polític',...(politicalMode().bySex?['sexe']:[])];
+    const baseNote=collection?' Consulta la base de cada indicador.':` ${num(result.groups.length)} combinacions · ${num(result.groups.filter(g=>g.n===0).length)} sense base · ${num(result.groups.filter(g=>g.n>0&&g.n<30).length)} amb n < 30.`;
+    $('grouping-note').textContent=`${scopeLabel()} · ${num(result.politicalExcluded)} registres fora del creuament per manca de ${new Intl.ListFormat('ca',{type:'disjunction'}).format(required)}.${baseNote}`;
+  }else{
+    $('grouping-note').textContent=`Referència: ${result.groupLabel} (${result.groupBy}). ${num(result.groupingMissing)} registres seleccionats sense dada de referència, agrupats a «${result.missingGroupLabel}». Desglossament: ${result.breakdownLabel}.${['PERFIL_POLITIC','EDAT'].includes(result.breakdownBy)?` ${num(result.breakdownMissing)} registres a «${result.breakdownMissingLabel}».`:''}`;
+  }
   $('breadcrumb').textContent=item.group;
   $('indicator-title').textContent=item.label;
   $('description').textContent=item.description;
@@ -116,7 +153,7 @@ function render(){
   $('response').innerHTML=choices.map(v=>option(v,labelResponse(v))).join('');
   $('response').value=response;$('response').disabled=!choices.length;
   $('source-badge').textContent=`${data.source} · ${num(data.rows.length)} registres`;
-  $('source-text').textContent=`Fitxer: ${data.source}. ${num(data.rows.length)} registres i ${data.headers.length} variables. Indicador: ${state.indicator}. Referència: ${result.groupLabel} (${result.groupBy}). Desglossament: ${result.breakdownLabel}. Totes les enquestes i tots els anys conjuntament.`;
+  $('source-text').textContent=`Fitxer: ${data.source}. ${num(data.rows.length)} registres i ${data.headers.length} variables. Indicador: ${state.indicator}. Referència: ${result.groupLabel} (${result.groupBy}). Desglossament: ${result.breakdownLabel}. ${scopeLabel()}.`;
   $('coverage').innerHTML=Object.entries(result.coverage).map(([name,c])=>`<span>${esc(name)}: ${collection?range([c.min,c.max]):c.n}/${c.total} amb dada${collection?' per indicador':''}</span>`).join('');
   if($('multi-panel').open)renderMulti();
   if(!collection)renderChart();renderTable();setView(view);
@@ -125,7 +162,7 @@ function renderChart(){
   $('response-title').textContent=labelResponse(response)||'Sense respostes per a aquesta selecció';
   const palette=['#16766d','#bb5b18','#5269b0','#945397','#79912d','#65879a'];
   const breakdownCategories=C.orderedResponses(result.breakdownBy,new Set(data.rows.map(row=>row[data.headers.indexOf(result.breakdownBy)]).filter(v=>!C.missing(v))));
-  const color=s=>['PERFIL_POLITIC','EDAT'].includes(result.breakdownBy)?(s===result.breakdownMissingLabel?'#7d8581':palette[breakdownCategories.indexOf(s)%palette.length]):colors[s];
+  const color=s=>politicalMode()?palette[result.subgroups.indexOf(s)]:['PERFIL_POLITIC','EDAT'].includes(result.breakdownBy)?(s===result.breakdownMissingLabel?'#7d8581':palette[breakdownCategories.indexOf(s)%palette.length]):colors[s];
   $('legend').innerHTML=result.subgroups.map(s=>`<span><i style="background:${color(s)}"></i>${esc(s)}</span>`).join('');
   const ref=result.reference, value=ref.n?fmt((ref.counts[response]||0)/ref.n*100)+'%':'—';
   $('reference').innerHTML=`<div class="reference"><span>Conjunt seleccionat · ${esc(ref.subgroup)}</span><span><b>${value}</b> &nbsp; ${num(ref.counts[response]||0)} de ${num(ref.n)} respostes</span></div>`;
@@ -145,7 +182,7 @@ function exportSnapshot(){
   return TableExport.capture($('table').querySelector('table'),{
     title:$('indicator-title').textContent+(isCollection()?' · '+labelResponse(response):''),
     description:$('description').textContent,
-    context:`Referència: ${result.groupLabel}. Desglossament: ${result.breakdownLabel}. Selecció: ${category}. ${state.sex==='Home'||state.sex==='Dona'?'Només '+state.sex+'. ':''}Sense ponderar. NS/NC ${state.excludeNS?'exclosos':'inclosos'}. Tots els anys i enquestes. Font: ${data.source}.`,
+    context:`Referència: ${result.groupLabel}. Desglossament: ${result.breakdownLabel}. Selecció: ${category}. ${state.sex==='Home'||state.sex==='Dona'?'Només '+state.sex+'. ':''}Sense ponderar. NS/NC ${state.excludeNS?'exclosos':'inclosos'}. ${scopeLabel()}. Font: ${data.source}.`,
     fixedColumns:tableOptions.orientation==='columns'?(tableOptions.reference?2:1):(isCollection()?2:3),decimals:tableOptions.decimals
   });
 }
@@ -208,12 +245,13 @@ function setView(next){view=isCollection()?'table':next;$('chart-view').hidden=v
 function exportCSV(){
   const lines=[['conjunt','indicador','descripcio','variable_referencia','referencia','enquesta','any','ponderacio','exclou_ns_nc','perfil','sexe','variable_desglossament','desglossament','subgrup','resposta','recompte','base','percentatge','excloses']];
   const series=isCollection()?result.series:[{id:state.indicator,result}];
-  for(const s of series)for(const g of [s.result.reference,...s.result.groups])for(const v of isCollection()?[response]:s.result.responses)lines.push([isCollection()?result.collectionLabel:'',s.id,catalog.find(i=>i.id===s.id)?.description||mentionLabel(s.id),result.groupBy,result.groupLabel,'Totes','Tots','Sense ponderar',state.excludeNS?'Sí':'No',g.profile,g.sex,result.breakdownBy,result.breakdownLabel,g.subgroup,isCollection()?labelResponse(v):v,g.counts[v]||0,g.n,g.n?fmt((g.counts[v]||0)/g.n*100):'',g.missing]);
+  const scope=activeScope();
+  for(const s of series)for(const g of [s.result.reference,...s.result.groups])for(const v of isCollection()?[response]:s.result.responses)lines.push([isCollection()?result.collectionLabel:'',s.id,catalog.find(i=>i.id===s.id)?.description||mentionLabel(s.id),result.groupBy,result.groupLabel,scope?.study||'Totes',scope?.year||'Tots','Sense ponderar',state.excludeNS?'Sí':'No',g.profile,g.sex,result.breakdownBy,result.breakdownLabel,g.subgroup,isCollection()?labelResponse(v):v,g.counts[v]||0,g.n,g.n?fmt((g.counts[v]||0)/g.n*100):'',g.missing]);
   const safe=v=>{v=String(v??'');if(/^[=+@\-\t\r]/.test(v))v="'"+v;return '"'+v.replaceAll('"','""')+'"';};
   const blob=new Blob(['\uFEFF'+lines.map(row=>row.map(safe).join(';')).join('\r\n')],{type:'text/csv;charset=utf-8'});
   const url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download=`perfils_${state.groupBy}_${result.breakdownBy||'TOTAL'}_${state.indicator}.csv`;link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
-function reset(){if(!data)return;state={indicator:data.headers.includes('PRIMER_PROBLEMA')?'PRIMER_PROBLEMA':catalog.find(v=>data.headers.includes(v.id)).id,groupBy:'ID2',sex:'compare',excludeNS:false,profiles:null};response='';$('search').value='';$('sex').value='compare';$('exclude-ns').checked=false;$('profile-details').open=false;dimensions();navigation();render();}
+function reset(){if(!data)return;state={indicator:data.headers.includes('PRIMER_PROBLEMA')?'PRIMER_PROBLEMA':catalog.find(v=>data.headers.includes(v.id)).id,groupBy:'ID2',sex:'compare',excludeNS:false,profiles:null};response='';$('search').value='';$('sex').value='compare';$('political-scope').value='';$('exclude-ns').checked=false;$('profile-details').open=false;dimensions();navigation();render();}
 $('search').oninput=navigation;
 $('percentage-decimals').value=String(tableOptions.decimals);
 $('percentage-decimals').onchange=()=>{
@@ -232,7 +270,8 @@ for(const key of ['orientation','grouped','heat','counts','reference']){
     renderTable();
   };
 }
-$('sex').onchange=()=>{state.sex=$('sex').value;render();};
+$('sex').onchange=()=>{state.sex=$('sex').value;referenceCategories();render();};
+$('political-scope').onchange=()=>{const value=$('political-scope').value;state.scope=value?JSON.parse(value):null;render();};
 $('group-by').onchange=()=>{state.groupBy=$('group-by').value;state.profiles=null;$('profile-details').open=false;referenceCategories();render();};
 $('exclude-ns').onchange=()=>{state.excludeNS=$('exclude-ns').checked;render();};
 $('response').onchange=()=>{response=$('response').value;if(isCollection())render();else renderChart();};
@@ -252,7 +291,7 @@ function multiOptions(){
   $('multi-options').innerHTML=items.map(v=>`<label><input type="checkbox" value="${esc(v.id)}" ${multiIds.has(v.id)?'checked':''}>${esc(v.label)}</label>`).join('')||'Cap coincidència';
 }
 function renderMulti(){
-  const key=JSON.stringify([state.groupBy,state.sex,state.profiles,state.excludeNS]);
+  const key=JSON.stringify([state.groupBy,state.sex,state.profiles,state.excludeNS,activeScope()]);
   if(key!==multiFilterKey){multiCache.clear();multiFilterKey=key;}
   const showMentions=multiIds.has(mentionSet.id);
   const mentionIds=new Set(showMentions?mentionIndicators():[]);
@@ -262,15 +301,15 @@ function renderMulti(){
   $('multi-count').textContent=`${indicators.size} indicadors seleccionats`;
   $('multi-export').disabled=!indicators.size;
   if(!indicators.size){$('multi-table').innerHTML='';return;}
-  let head='',body='';
+  let blocks,body='';
   for(const id of indicators){
     if(!multiCache.has(id))multiCache.set(id,C.summarize(data,{...state,indicator:id}));
     const summary=multiCache.get(id),groups=[summary.reference,...summary.groups];
-    if(!head)head='<th>Indicador</th><th>Categoria</th>'+groups.map(g=>`<th>${esc(g.profile)}<br> ${esc(g.subgroup)}</th>`).join('');
+    blocks??=ProfileTable.profileBlocks(groups,{grouped:true,reference:true});
     const fromMentionSet=mentionIds.has(id);
     const label=fromMentionSet?`Menció: ${mentionLabel(id)}`:catalog.find(v=>v.id===id).label;
     const responses=fromMentionSet?[mentionResponse]:summary.responses;
-    body+=`<tbody><tr class="base-row"><th class="row-label" scope="rowgroup" rowspan="${responses.length+1}">${esc(label)}</th><th>Base (n)</th>${groups.map(g=>`<td>${g.n}</td>`).join('')}</tr>`;
+    body+=`<tbody><tr class="base-row"><th class="row-label" scope="rowgroup" rowspan="${responses.length+1}">${esc(label)}</th><th>Base (n)</th>${groups.map(g=>`<td>${politicalMode()&&g.n>0&&g.n<30?'<i class="low-dot" aria-label="Base reduïda"></i>':''}${g.n}</td>`).join('')}</tr>`;
     for(const value of responses){
       const label=id.startsWith('MENCIO_TEMES_')?({'0':'No','1':'Sí'}[value]??value):String(value).replaceAll('_',' ');
       body+=`<tr><th scope="row">${esc(label)}</th>${groups.map(g=>{
@@ -281,7 +320,9 @@ function renderMulti(){
     }
     body+='</tbody>';
   }
-  $('multi-table').innerHTML=`<table class="results-table"><caption>Percentatges sobre la base de cada indicador i perfil.</caption><thead><tr>${head}</tr></thead>${body}</table>`;
+  const columns=ProfileTable.columnGroups(blocks,2);
+  const head=ProfileTable.columnHeaders(blocks,['Indicador','Categoria'],undefined,'multi');
+  $('multi-table').innerHTML=`<table class="results-table columns"><caption>Percentatges sobre la base de cada indicador i perfil.</caption>${columns}<thead>${head}</thead>${body}</table>`;
 }
 $('multi-search').oninput=multiOptions;
 $('multi-mention-response').onchange=renderMulti;
@@ -294,7 +335,7 @@ $('multi-panel').ontoggle=()=>{if(data&&$('multi-panel').open)renderMulti();};
 $('multi-export').onclick=()=>{
   const model=TableExport.capture($('multi-table').querySelector('table'),{
     title:'Taula de diversos indicadors',description:'Base vàlida per indicador, perfil i subgrup.',
-    context:`${result.groupLabel} · ${result.breakdownLabel} · NS/NC ${state.excludeNS?'exclosos':'inclosos'} · Sense ponderar · ${data.source}`,
+    context:`${result.groupLabel} · ${result.breakdownLabel} · ${scopeLabel()} · NS/NC ${state.excludeNS?'exclosos':'inclosos'} · Sense ponderar · ${data.source}`,
     fixedColumns:2,decimals:tableOptions.decimals
   });
   const link=document.createElement('a');
@@ -307,6 +348,7 @@ function adoptData(next){
   const unknown=next.headers.filter(k=>!['ID2','SEXE','estudi','ANY'].includes(k)&&!catalog.some(v=>v.id===k));
   catalog=[...catalog,...unknown.map(id=>({id,label:id.replaceAll('_',' '),description:C.descriptionFor(id)||'Descripció pendent de completar.',group:'Altres indicadors',warning:C.descriptionFor(id)?'':'Variable nova sense descripció al diccionari.'}))];
   data=next;
+  setupPoliticalScopes();
   multiIds.clear();
   multiCache.clear();
   $('multi-search').value='';

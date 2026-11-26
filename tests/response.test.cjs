@@ -30,6 +30,9 @@ for(const id of ['PRIMER_PROBLEMA','PERFIL_POLITIC']){
   element('multi-options').onchange({target:{value:id,checked:true}});
 }
 const combined=element('multi-table').innerHTML;
+assert.match(combined,/<thead><tr><th rowspan="2" scope="col" class="row-label">Indicador<\/th><th rowspan="2" scope="col">Categoria<\/th>/);
+assert.match(combined,/<th id="multi-profile-1" scope="colgroup" colspan="2" class="profile-heading group-start">A<\/th>/);
+assert.match(combined,/<th id="multi-subgroup-1" headers="multi-profile-1" scope="col" class="group-start">Dona<\/th><th id="multi-subgroup-2" headers="multi-profile-1" scope="col" class="">Home<\/th>/);
 assert.equal((combined.match(/<th>Base \(n\)<\/th>/g)||[]).length,2);
 assert.ok(combined.includes('<th>Base (n)</th><td>3</td>'));
 assert.ok(combined.includes('<th>Base (n)</th><td>2</td>'));
@@ -187,6 +190,46 @@ assert.equal(vm.runInContext('result.series.length',context),1);
 assert.equal(element('response').value,'Utilitza');
 assert.ok(element('table').innerHTML.includes('<small class="header-base">n=3</small>'));
 console.log('PASS: service collection navigation, default response, service rows, per-service bases, response changes, filters, CSV and partial datasets.');
+
+context.politicalFixture={source:'politics.csv',headers:['ID2','SEXE','estudi','ANY','PRIMER_PROBLEMA','PERFIL_POLITIC','MENCIO_TEMES_Habitatge'],rows:[
+ ['A','Dona','Test','2025','Habitatge',"Satisfets d'esquerres",'1'],
+ ['A','Home','Test','2026','Habitatge',"Simpatitzants o exvotants decidament d'esquerres",'1'],
+ ['A','Dona','Test','2026','Inseguretat','No simpatitzants','0'],
+ [null,'Dona','Test','2026','Habitatge','No simpatitzants','1'],
+ ['A','Home','Other','2026','Inseguretat',null,'0']
+]};
+vm.runInContext('adoptData(politicalFixture)',context);
+assert.equal(element('political-controls').hidden,true);
+assert.match(element('sex').innerHTML,/value="BLOC_POLITIC_SEXE"\s*>Bloc polític × sexe/);
+element('sex').value='BLOC_POLITIC_SEXE';element('sex').onchange();
+assert.equal(element('political-controls').hidden,false);
+assert.ok(element('political-scope').innerHTML.includes('Test · 2026'));
+assert.ok(!element('political-scope').innerHTML.includes('Other'));
+assert.ok(!element('profile-options').innerHTML.includes('Sense perfil'));
+assert.ok(element('legend').innerHTML.includes('Home · Bloc d’esquerres'));
+assert.equal(element('valid-n').textContent,'3');
+element('multi-panel').open=true;
+element('multi-options').onchange({target:{value:'__MENCIO_PROBLEMA',checked:true}});
+assert.match(element('multi-table').innerHTML,/<th id="multi-profile-1" scope="colgroup" colspan="4" class="profile-heading group-start">A<\/th>/);
+assert.equal((element('multi-table').innerHTML.match(/headers="multi-profile-1"/g)||[]).length,4);
+assert.match(element('multi-table').innerHTML,/<th>Base \(n\)<\/th><td><i [^>]+><\/i>3<\/td>/);
+element('political-scope').value=JSON.stringify({study:'Test',year:'2026'});element('political-scope').onchange();
+assert.equal(element('valid-n').textContent,'2');
+assert.match(element('multi-table').innerHTML,/<th>Base \(n\)<\/th><td><i [^>]+><\/i>2<\/td>/);
+assert.ok(element('grouping-note').textContent.includes('1 registres fora del creuament'));
+element('export').onclick();
+assert.ok(exported.includes('"Test";"2026";"Sense ponderar"'));
+assert.ok(exported.includes('"A";"Home";"BLOC_POLITIC_SEXE";"Bloc polític × sexe";"Home · Bloc d’esquerres"'));
+assert.ok(vm.runInContext('exportSnapshot()',context).context.includes('Test · 2026'));
+element('sex').value='BLOC_POLITIC';element('sex').onchange();
+assert.equal(element('valid-n').textContent,'2');
+assert.ok(element('legend').innerHTML.includes('Resta de perfils polítics'));
+assert.ok(!element('legend').innerHTML.includes('Home ·'));
+element('sex').value='compare';element('sex').onchange();
+assert.equal(element('political-controls').hidden,true);
+assert.equal(element('valid-n').textContent,'5');
+element('multi-panel').open=false;
+console.log('PASS: political block controls, filtered multi-indicator bases, CSV and formatted export metadata, and ordinary breakdowns.');
 
 (async()=>{
  let selected=false,opened=false;

@@ -48,6 +48,11 @@
 #copy-preview{width:calc(100% - 36px);max-width:1180px;max-height:92vh;border:1px solid var(--line);border-radius:12px;padding:0;color:var(--ink);background:#edf1ef}#copy-preview::backdrop{background:#132c2980}#copy-table{user-select:text;-webkit-user-select:text}#copy-table ::selection{background:#b7d8f2;color:#132c29}
 
 .results-table .header-base{display:block;font-size:9px;font-weight:400;color:var(--muted)}
+.political-controls{grid-column:1/-1;display:grid;grid-template-columns:minmax(215px,1fr) 2fr;gap:12px 20px;align-items:start;border-top:1px solid var(--line);padding-top:14px}
+.political-controls details{font-size:12px;padding-top:2px}
+.political-controls summary{width:fit-content;cursor:pointer}
+.political-controls p{font-size:12px;max-width:64ch}
+@media(max-width:800px){.political-controls{grid-template-columns:1fr}}
 
 .report-settings{padding:10px 12px;border-bottom:1px solid var(--line);margin-bottom:4px}.report-settings>label:not(.check){display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:11px;color:var(--muted)}.report-settings select{padding:5px;border:1px solid var(--line);border-radius:4px;background:white;font-size:12px}.report-settings .check{margin-top:10px;font-size:12px}.report-settings p{font-size:10px;line-height:1.5;margin-top:8px}
 #copy-table th,#copy-table td,#export-pages th,#export-pages td{position:static;min-width:0;max-width:none;overflow-wrap:normal}
