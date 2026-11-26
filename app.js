@@ -301,24 +301,60 @@ $('export-image').onclick=copyImage;
 $('copy-select').onclick=selectCopyTable;
 $('copy-close').onclick=()=>{$('copy-preview').close();window.getSelection()?.removeAllRanges();};
 $('export-print').onclick=()=>window.print();$('export-close').onclick=()=>$('export-preview').close();
-const multiIds=new Set(), multiCache=new Map();
+const multiIds=new Set(), omittedMentions=new Set(), multiCache=new Map();
+const builtInModels=[
+  {name:'Gestió, evolució i futur',ids:['VAL_GESTIO','EVO1A_BARRI','FUTUR_BARRI','EVO1A_BCN','FUTUR_BCN']},
+  {name:'Gestió i futur',ids:['VAL_GESTIO','FUTUR_BCN','FUTUR_BARRI']},
+  {name:'Problemes de la ciutat',ids:['PRIMER_PROBLEMA',mentionSet.id]},
+  {name:'Gestió per àmbits',ids:managementSet.indicators},
+  {name:'Ús de serveis municipals',ids:usageSet.indicators}
+];
+const modelPreference='perfils-indicator-models';
+const savedModels=[];
+try{
+  const stored=JSON.parse(localStorage.getItem(modelPreference)??'[]');
+  if(Array.isArray(stored))savedModels.push(...stored.filter(model=>typeof model?.name==='string'&&model.name.trim()
+    &&Array.isArray(model.ids)&&model.ids.every(id=>typeof id==='string')
+    &&Array.isArray(model.omitted)&&model.omitted.every(id=>typeof id==='string')));
+}catch{/* The defaults remain available when browser storage cannot be read. */}
 let multiFilterKey='';
+function multiSelection(ids=multiIds,omitted=omittedMentions){
+  const mentions=new Set(ids.has(mentionSet.id)?mentionIndicators().filter(id=>!omitted.has(id)):[]);
+  const indicators=new Set([...ids].flatMap(id=>id===mentionSet.id?[...mentions]:[id]).filter(id=>data.headers.includes(id)));
+  return {indicators,mentions};
+}
+function modelOptions(selected=''){
+  const modelGroup=(label,models,prefix)=>models.length?`<optgroup label="${label}">${models.map((model,i)=>{
+    const {indicators}=multiSelection(new Set(model.ids),new Set(model.omitted));
+    return `<option value="${prefix}-${i}"${indicators.size?'':' disabled'}>${esc(model.name)}${indicators.size?'':' · no disponible'}</option>`;
+  }).join('')}</optgroup>`:'';
+  $('multi-model').innerHTML=option('','Tria un model')+modelGroup('Models inicials',builtInModels,'builtin')+modelGroup('Models desats en aquest navegador',savedModels,'saved');
+  $('multi-model').value=selected;
+}
 function multiOptions(){
   const query=C.normalize($('multi-search').value);
+  const {indicators,mentions}=multiSelection();
+  const allMentions=mentionIndicators().length;
+  const selectedOnly=$('multi-selected-only').checked;
   const available=catalog.filter(v=>data.headers.includes(v.id));
-  if(mentionIndicators().length)available.unshift(mentionSet);
-  const items=available.filter(v=>C.normalize([v.label,v.group,v.id].join(' ')).includes(query));
-  $('multi-options').innerHTML=items.map(v=>`<label><input type="checkbox" value="${esc(v.id)}" ${multiIds.has(v.id)?'checked':''}>${esc(v.label)}</label>`).join('')||'Cap coincidència';
+  if(allMentions)available.unshift(mentionSet);
+  const items=available.filter(v=>(!selectedOnly||(v===mentionSet?mentions.size:indicators.has(v.id)))&&C.normalize([v.label,v.group,v.id].join(' ')).includes(query));
+  const options=$('multi-options');
+  options.innerHTML=items.map(v=>{
+    const checked=v===mentionSet?mentions.size===allMentions:indicators.has(v.id);
+    return `<label><input type="checkbox" value="${esc(v.id)}"${checked?' checked':''}>${esc(v.label)}</label>`;
+  }).join('')||(selectedOnly&&!query?'Cap indicador seleccionat':'Cap coincidència');
+  const mentionToggle=options.querySelectorAll('input')[0];
+  if(mentionToggle?.value===mentionSet.id)mentionToggle.indeterminate=mentions.size>0&&mentions.size<allMentions;
 }
 function renderMulti(){
   const key=JSON.stringify([state.groupBy,state.sex,state.profiles,state.excludeNS,activeScope()]);
   if(key!==multiFilterKey){multiCache.clear();multiFilterKey=key;}
-  const showMentions=multiIds.has(mentionSet.id);
-  const mentionIds=new Set(showMentions?mentionIndicators():[]);
-  const indicators=new Set([...multiIds].flatMap(id=>id===mentionSet.id?[...mentionIds]:[id]));
+  const {indicators,mentions:mentionIds}=multiSelection();
   const mentionResponse=$('multi-mention-response').value;
-  $('multi-mention-control').hidden=!showMentions;
+  $('multi-mention-control').hidden=!mentionIds.size;
   $('multi-count').textContent=`${indicators.size} indicadors seleccionats`;
+  $('multi-model-save').hidden=!indicators.size;
   $('multi-export').disabled=!indicators.size;
   $('multi-volume-control').hidden=true;
   if(!indicators.size){$('multi-table').innerHTML='';return;}
@@ -354,11 +390,60 @@ function renderMulti(){
   $('multi-table').innerHTML=`<table class="results-table columns"><caption>Percentatges sobre la base de cada indicador i perfil.${volume?' Volums de referència dels fitxers Excel.':''}</caption>${columns}<thead>${head}</thead>${body}</table>`;
 }
 $('multi-search').oninput=multiOptions;
+$('multi-selected-only').onchange=multiOptions;
 $('multi-mention-response').onchange=renderMulti;
 $('multi-options').onchange=event=>{
   const input=event.target;
-  if(input.checked)multiIds.add(input.value);else multiIds.delete(input.value);
+  const {value,checked}=input;
+  if(checked)multiIds.add(value);else multiIds.delete(value);
+  if(value===mentionSet.id)omittedMentions.clear();
+  else if(checked)omittedMentions.delete(value);
+  else if(multiIds.has(mentionSet.id)&&value.startsWith('MENCIO_TEMES_'))omittedMentions.add(value);
+  $('multi-model').value='';
+  $('multi-model-status').textContent='';
+  multiOptions();
   renderMulti();
+  const next=[...$('multi-options').querySelectorAll('input')].find(candidate=>candidate.value===value);
+  (next??$('multi-selected-only')).focus?.();
+};
+$('multi-model').onchange=()=>{
+  const [type,index]=$('multi-model').value.split('-');
+  const model=(type==='builtin'?builtInModels:savedModels)[index];
+  if(!model)return;
+  const available=model.ids.filter(id=>id===mentionSet.id?mentionIndicators().length:data.headers.includes(id));
+  const omitted=new Set(model.omitted);
+  if(!multiSelection(new Set(available),omitted).indicators.size)return;
+  multiIds.clear();
+  for(const id of available)multiIds.add(id);
+  omittedMentions.clear();
+  for(const id of omitted)omittedMentions.add(id);
+  $('multi-search').value='';
+  const missing=model.ids.length-available.length;
+  $('multi-model-status').textContent=missing===0?'':missing===1?'S’ha omès un indicador que no és al fitxer.':`S’han omès ${missing} indicadors que no són al fitxer.`;
+  multiOptions();
+  renderMulti();
+};
+$('multi-model-form').onsubmit=event=>{
+  event.preventDefault();
+  const input=$('multi-model-name'),name=input.value.trim();
+  if(!name||!multiSelection().indicators.size)return;
+  const status=$('multi-model-status');
+  if([...builtInModels,...savedModels].some(model=>C.normalize(model.name)===C.normalize(name))){
+    status.textContent='Ja hi ha un model amb aquest nom. Tria’n un altre.';
+    input.focus?.();
+    return;
+  }
+  savedModels.push({name,ids:[...multiIds],omitted:[...omittedMentions]});
+  modelOptions(`saved-${savedModels.length-1}`);
+  input.value='';
+  $('multi-model-save').open=false;
+  $('multi-model').focus?.();
+  try{
+    localStorage.setItem(modelPreference,JSON.stringify(savedModels));
+    status.textContent='Model desat en aquest navegador.';
+  }catch{
+    status.textContent='Model disponible fins que recarreguis la pàgina.';
+  }
 };
 $('multi-panel').ontoggle=()=>{if(data&&$('multi-panel').open)renderMulti();};
 $('multi-export').onclick=()=>{
@@ -379,10 +464,15 @@ function adoptData(next){
   data=next;
   setupPoliticalScopes();
   multiIds.clear();
+  omittedMentions.clear();
   multiCache.clear();
   $('multi-search').value='';
+  $('multi-selected-only').checked=false;
+  $('multi-model-status').textContent='';
+  $('multi-model-save').open=false;
   $('multi-mention-response').value='1';
   $('multi-panel').hidden=false;
+  modelOptions();
   multiOptions();
   document.querySelectorAll('.filters,.workspace,.technical').forEach(el=>el.hidden=false);
   $('search').disabled=false;$('reset').disabled=false;

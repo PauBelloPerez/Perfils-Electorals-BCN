@@ -60,3 +60,11 @@
 #copy-table th,#copy-table td,#export-pages th,#export-pages td{position:static;min-width:0;max-width:none;overflow-wrap:normal}
 
 #multi-panel{margin:1rem 0;padding:1rem;background:white}#multi-panel summary{cursor:pointer;font-weight:700}#multi-panel[open] summary{margin-bottom:1rem}.multi-options{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:.4rem 1rem;max-height:12rem;overflow:auto;margin:.75rem 0}.multi-options label{display:flex;align-items:baseline;gap:.5rem}
+.multi-picker,.multi-model-save form{display:flex;flex-wrap:wrap;align-items:end;gap:.5rem 1rem}
+.multi-picker>label:not(.check),.multi-model-save form label{display:flex;flex-direction:column;gap:4px;min-width:0;font-weight:600;color:var(--ink)}
+.multi-picker .check{min-height:34px}
+.multi-picker select,.multi-picker input[type="search"],.multi-model-save input[type="text"]{min-width:0;max-width:100%;border:1px solid var(--line);border-radius:6px;padding:7px 9px;background:#fff;color:var(--ink);font:inherit}
+.multi-model-save{margin-top:.7rem}
+#multi-panel .multi-model-save summary{margin-bottom:0;font-weight:600;color:var(--teal)}
+.multi-model-save[open] form{margin-top:.5rem}
+#multi-model-status:empty{display:none}

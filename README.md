@@ -37,6 +37,8 @@ En **Preocupacions ciutadanes → Menció problema · tots els problemes**, una 
 
 `Carrega un CSV` sustituye temporalmente los datos en el navegador. Admite UTF-8, separadores punto y coma, coma o tabulación, campos entrecomillados y saltos dentro de campos. Requiere `ID2`, `SEXE`, `estudi`, `ANY` y al menos un indicador conocido. Al recargar, vuelve a leer `data.csv` del servidor, sin caché. Si el archivo falta o es inválido, muestra un aviso; no sustituye silenciosamente los datos por una muestra. Desde `file://`, vuelve a solicitar una selección manual.
 
+En **Taula de diversos indicadors**, **Model d’indicadors** carga una selección de variables. Tras aplicarla, puedes marcar y desmarcar indicadores, incluidos los del conjunto de menciones. **Només seleccionats** muestra solo los indicadores incluidos. **Desa la selecció com a model** guarda tu combinación en el navegador para reutilizarla. Al aplicar un modelo solo se seleccionan las variables presentes en el CSV activo.
+
 ## Exportar la tabla con formato
 
 La fila **Volum del perfil (persones)** muestra el volumen de referencia de los grupos con cobertura. Puedes colocarla arriba o abajo con **Posició del volum**. En las vistas por sexo se usa `metadata/volum-perfils-amb-sexe.xlsx`; en las demás se usa `metadata/volum-perfils.xlsx`. Cada bloque político suma las categorías que lo componen dentro del mismo archivo. El volumen del conjunto suma los grupos clasificados de la tabla. Los volúmenes son independientes de la base de respuesta y del año o la encuesta del indicador.

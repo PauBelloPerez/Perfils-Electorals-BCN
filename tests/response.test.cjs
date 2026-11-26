@@ -261,6 +261,57 @@ assert.equal(element('valid-n').textContent,'5');
 element('multi-panel').open=false;
 console.log('PASS: political block controls, filtered multi-indicator bases, CSV and formatted export metadata, and ordinary breakdowns.');
 
+const modelColumns=['VAL_GESTIO','EVO1A_BARRI','FUTUR_BARRI','EVO1A_BCN','FUTUR_BCN'];
+context.modelFixture={source:'models.csv',headers:[
+ 'ID2','SEXE','estudi','ANY','PRIMER_PROBLEMA','MENCIO_TEMES_Habitatge','MENCIO_TEMES_Turisme',...modelColumns
+],rows:[['A','Dona','Test','2026','Habitatge','1','0','Bona','Millora','Millorarà','Igual','Millorarà']]};
+vm.runInContext('adoptData(modelFixture)',context);
+element('multi-panel').open=true;
+const modelPicker=element('multi-model');
+const selectModel=value=>{modelPicker.value=value;modelPicker.onchange();};
+const setIndicator=(value,checked)=>element('multi-options').onchange({target:{value,checked}});
+const selectedIndicators=()=>JSON.parse(vm.runInContext('JSON.stringify([...multiSelection().indicators])',context));
+assert.match(modelPicker.innerHTML,/value="builtin-0">Gestió, evolució i futur/);
+assert.match(modelPicker.innerHTML,/value="builtin-4" disabled>Ús de serveis municipals/);
+element('multi-search').value='habitatge';
+selectModel('builtin-0');
+assert.deepEqual(selectedIndicators(),modelColumns);
+assert.equal(element('multi-search').value,'');
+setIndicator('EVO1A_BARRI',false);
+setIndicator('PRIMER_PROBLEMA',true);
+assert.deepEqual(selectedIndicators(),['VAL_GESTIO','FUTUR_BARRI','EVO1A_BCN','FUTUR_BCN','PRIMER_PROBLEMA']);
+assert.equal(modelPicker.value,'');
+element('multi-selected-only').checked=true;
+element('multi-selected-only').onchange();
+assert.ok(!element('multi-options').innerHTML.includes('value="EVO1A_BARRI"'));
+selectModel('builtin-2');
+assert.deepEqual(selectedIndicators(),['PRIMER_PROBLEMA','MENCIO_TEMES_Habitatge','MENCIO_TEMES_Turisme']);
+setIndicator('MENCIO_TEMES_Turisme',false);
+assert.deepEqual(selectedIndicators(),['PRIMER_PROBLEMA','MENCIO_TEMES_Habitatge']);
+assert.equal(element('multi-mention-control').hidden,false);
+assert.ok(!element('multi-table').innerHTML.includes('Menció: Turisme'));
+const storedModels=new Map();
+context.localStorage.setItem=(key,value)=>storedModels.set(key,value);
+element('multi-model-name').value='Selecció de treball';
+element('multi-model-form').onsubmit({preventDefault(){}});
+const saved=JSON.parse(storedModels.get('perfils-indicator-models'));
+assert.deepEqual(saved,[{name:'Selecció de treball',ids:['PRIMER_PROBLEMA','__MENCIO_PROBLEMA'],omitted:['MENCIO_TEMES_Turisme']}]);
+assert.match(modelPicker.innerHTML,/value="saved-0">Selecció de treball/);
+selectModel('builtin-1');
+assert.deepEqual(selectedIndicators(),['VAL_GESTIO','FUTUR_BCN','FUTUR_BARRI']);
+selectModel('saved-0');
+assert.deepEqual(selectedIndicators(),['PRIMER_PROBLEMA','MENCIO_TEMES_Habitatge']);
+setIndicator('MENCIO_TEMES_Habitatge',false);
+assert.equal(element('multi-mention-control').hidden,true);
+context.partialModelFixture={...context.modelFixture,headers:context.modelFixture.headers.slice(0,-1),rows:context.modelFixture.rows.map(row=>row.slice(0,-1))};
+vm.runInContext('adoptData(partialModelFixture)',context);
+selectModel('builtin-0');
+assert.deepEqual(selectedIndicators(),modelColumns.slice(0,-1));
+assert.match(element('multi-model-status').textContent,/omès un indicador/);
+assert.equal(element('multi-count').textContent,'4 indicadors seleccionats');
+element('multi-panel').open=false;
+console.log('PASS: editable indicator models, per-mention exclusions, saved selections, and missing CSV columns.');
+
 (async()=>{
  let selected=false,opened=false;
  context.TableExport={capture:()=>({}),html:()=>'<table><tr><td>Habitatge</td></tr></table>',copyFormatted:async()=>false};
