@@ -338,7 +338,17 @@ const builtInModels=[
   {name:'Gestió i futur',ids:['VAL_GESTIO','FUTUR_BCN','FUTUR_BARRI']},
   {name:'Problemes de la ciutat',ids:['PRIMER_PROBLEMA',mentionSet.id]},
   {name:'Gestió per àmbits',ids:managementSet.indicators},
-  {name:'Ús de serveis municipals',ids:usageSet.indicators}
+  {name:'Ús de serveis municipals',ids:usageSet.indicators},
+  {name:'Anàlisi general de perfils',ids:[
+    'VAL_GESTIO','EVO1A_BCN','FUTUR_BCN','pessimisme_ciutat','EVO1A_BARRI','FUTUR_BARRI',
+    'cat_gestio_aju_habitatge','HABITATGE_LIMITAR_COMPRA','HABITATGE_PRIORITAT_CIUTAT',
+    'cat_gestio_aju_turisme','TURISME_LIMITAR','AEROPORT',
+    'VAL_SEGUR','VAL_SEGUR_BARRI','cat_gestio_aju_seguretat',
+    'TIPOLOGIA_IMMIGRACIO','TIPUS_IGUALTAT_GENERE','TIPOLOGIA_SATISFACCIO',
+    'ASSOCIACIONSIME','IDEO_3','DESEFICACIA_EXTERNA','DESEFICACIA_INTERNA','TRANS_AGREGAT2',
+    'PARTIT','TIPUS_USUARI','RESUM_VISIONS_TURISME','OPOSICIO_INTERVENCIONISME','REBUIG_LGTBI',
+    'PRIMER_PROBLEMA',mentionSet.id
+  ]}
 ];
 const modelPreference='perfils-indicator-models';
 const savedModels=[];
