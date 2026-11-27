@@ -16,6 +16,28 @@ assert.equal(parsed.rows[0][0],'a; b');assert.equal(parsed.rows[0][4],'line 1\nl
 assert.throws(()=>C.parseCSV('ID2;SEXE;estudi;ANY\nA;Home;One'));
 assert.throws(()=>C.parseCSV('ID2;SEXE;estudi;ANY\n"A;Home;One;2025'));
 console.log('PASS: denominators, filters, missing profiles, NS/NC and CSV quoting (synthetic fixtures).');
+{
+  const values=['PSC','ERC','BeC','CUP','PP','VOX','JUNTS','Aliança','AC','Aliança Catalana',
+    'Sense partit /Abstenció','Nous electors','Altres','NS/NC',null,'No disponible'];
+  const parties={headers:['ID2','SEXE','estudi','ANY','PARTIT','INT_VOT'],
+    rows:values.map((v,i)=>Object.freeze(['A',i%2?'Dona':'Home','Test','2026',v,v]))};
+  const grouped=C.summarize(parties,{indicator:'PARTIT',sex:'compare'});
+  assert.equal(grouped.reference.n,14);
+  assert.equal(grouped.reference.missing,2);
+  assert.equal(grouped.reference.counts['ERC, BeC i CUP'],3);
+  assert.equal(grouped.reference.counts['PP i VOX'],2);
+  assert.equal(grouped.reference.counts['Junts i AC'],4);
+  for(const value of ['PSC','Sense partit /Abstenció','Nous electors','Altres','NS/NC'])assert.equal(grouped.reference.counts[value],1);
+  for(const value of ['ERC','BeC','CUP','PP','VOX','JUNTS','Aliança','AC'])assert.ok(!grouped.responses.includes(value));
+  for(const group of [grouped.reference,...grouped.groups])assert.equal(Object.values(group.counts).reduce((a,b)=>a+b,0),group.n);
+  assert.equal(grouped.groups.find(g=>g.sex==='Home').counts['ERC, BeC i CUP'],1);
+  assert.equal(grouped.groups.find(g=>g.sex==='Dona').counts['ERC, BeC i CUP'],2);
+  assert.equal(C.summarize(parties,{indicator:'PARTIT',sex:'all',excludeNS:true}).reference.n,13);
+  assert.equal(C.summarize(parties,{indicator:'PARTIT',sex:'Dona'}).reference.counts['ERC, BeC i CUP'],2);
+  assert.equal(C.summarize(parties,{indicator:'INT_VOT',sex:'all'}).reference.counts.ERC,1);
+  assert.equal(parties.rows[1][4],'ERC');
+  console.log('PASS: PARTIT grouping, party aliases, per-sex counts, unchanged bases, NS/NC and original data.');
+}
 const samplePath=require('node:path').join(__dirname,'../data/sample.js');
 if(fs.existsSync(samplePath)){
 const sandbox={window:{}};vm.runInNewContext(fs.readFileSync(samplePath,'utf8'),sandbox);

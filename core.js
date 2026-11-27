@@ -4,7 +4,18 @@
   const missing = v => v==null || ['', 'na','nan','null','no disponible'].includes(normalize(v));
   const nonresponse = v => /^(ns\s*\/?\s*nc|ns|nc|no ho sap|no sap|no contesta|no respon|no sap.*contesta)$/.test(normalize(v));
   const metadata=typeof module!=='undefined'?require('./response-metadata.js'):root.RESPONSE_METADATA;
+  const partyGroups=new Map([
+    ['ERC, BeC i CUP',['ERC','BeC','CUP']],
+    ['PP i VOX',['PP','VOX']],
+    ['Junts i AC',['JUNTS','AC','Aliança','Aliança Catalana']]
+  ].flatMap(([group,values])=>values.map(value=>[normalize(value),group])));
+  const responseValue=(variable,value)=>variable==='PARTIT'?(partyGroups.get(normalize(value))??value):value;
   const responseRanks=new Map(Object.entries(metadata.variables).map(([id,entry])=>[id,new Map(entry.responses.map(r=>[r.value,r.order]))]));
+  // Each grouped response keeps the earliest position of its original parties.
+  for(const {value,order} of metadata.variables.PARTIT.responses){
+    const grouped=responseValue('PARTIT',value),ranks=responseRanks.get('PARTIT');
+    ranks.set(grouped,Math.min(ranks.get(grouped)??Infinity,order));
+  }
   const missingRanks=new Map(Object.entries(metadata.variables).map(([id,entry])=>[id,Math.min(...entry.responses.filter(r=>missing(r.value)).map(r=>r.order))]));
   const descriptionFor=id=>metadata.variables[id]?.description||'';
   function compareResponses(a,b,variable){
@@ -119,8 +130,9 @@
         &&(!political.bySex||sexValues.includes(row[idx.SEXE])));
     });
     const valid=r=>!missing(r[idx[state.indicator]])&&(!state.excludeNS||!nonresponse(r[idx[state.indicator]]));
+    const answer=r=>responseValue(state.indicator,r[idx[state.indicator]]);
     const available=selected.filter(valid);
-    const responses=orderedResponses(state.indicator,new Set(available.map(r=>r[idx[state.indicator]])));
+    const responses=orderedResponses(state.indicator,new Set(available.map(answer)));
     const buckets=new Map();
     for(const row of selected){const name=groupName(row);if(!buckets.has(name))buckets.set(name,[]);buckets.get(name).push(row);}
     const profiles=[...buckets.keys()].sort((a,b)=>compareProfiles(a,b,groupBy));
@@ -138,7 +150,7 @@
     const make=(name,subgroup,source,sex,predicate)=>{
       const totalRows=predicate?source.filter(predicate):source;
       const usable=totalRows.filter(valid);const counts=Object.fromEntries(responses.map(v=>[v,0]));
-      usable.forEach(r=>counts[r[idx[state.indicator]]]++);
+      usable.forEach(r=>counts[answer(r)]++);
       return {profile:name,subgroup,sex,total:totalRows.length,n:usable.length,missing:totalRows.length-usable.length,counts};
     };
     const groups=profiles.flatMap(p=>political

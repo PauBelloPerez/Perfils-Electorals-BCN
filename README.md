@@ -76,7 +76,7 @@ Se exporta la tabla completa, incluidas las filas y columnas fuera del área des
 - Los casos sin `ID2` forman `Sense perfil` y se incluyen inicialmente.
 - La referencia `Conjunt seleccionat` aplica los mismos filtros. Las bases se muestran siempre; n < 30 se señala de forma orientativa, sin atribuir significación estadística.
 - No se mezclan respuestas múltiples en un único porcentaje. Cada columna de mención se trata como un indicador independiente. Para ellas 1 se muestra como mención y 0 como no mención; confirmar esta codificación con el responsable de la base.
-- Se conservan etiquetas originales. No se calculan medias de categorías codificadas ni se asume comparabilidad entre encuestas. `PARTIT` combina voto, intención o simpatía según el diccionario y no equivale a intención de voto homogénea.
+- Se conservan etiquetas originales salvo en `PARTIT`, que agrupa ERC, BeC y CUP como **ERC, BeC i CUP**, PP y VOX como **PP i VOX**, y Junts y Aliança como **Junts i AC**. La agrupación se aplica al calcular tablas, gráficos y exportaciones, conservando el CSV original y la base de respuestas. No se calculan medias de categorías codificadas ni se asume comparabilidad entre encuestas. `PARTIT` combina voto, intención o simpatía según el diccionario y no equivale a intención de voto homogénea.
 - El total corresponde al archivo cargado y cuenta registros, no personas únicas verificadas. No constituye por sí solo una estimación electoral. La ausencia de dato no distingue no-respuesta de pregunta no realizada.
 
 ## Archivos y cambios
